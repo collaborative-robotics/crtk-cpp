@@ -1,0 +1,9 @@
+Header      hdr
+char       	is_disabled
+char       	is_enabled
+char       	is_paused
+char       	is_fault
+char 		is_homed
+char 		is_ready
+char 		is_moving
+char 		is_homing
