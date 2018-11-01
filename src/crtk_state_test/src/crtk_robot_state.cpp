@@ -36,21 +36,21 @@
 #include <sstream>
 
 CRTK_robot_state::CRTK_robot_state(){
-  is_disabled   = '?';
-  is_enabled    = '?';
-  is_paused     = '?';
-  is_fault      = '?';
-  is_homing     = '?';
-  is_moving     = '?';
-  is_ready      = '?';
-  is_homed      = '?';
+  is_disabled   = 0;
+  is_enabled    = 0;
+  is_paused     = 0;
+  is_fault      = 0;
+  is_homing     = 0;
+  is_busy       = 0;
+  // is_ready      = 0;
+  is_homed      = 0;
 
   has_connected = 0;
 }
 
 bool CRTK_robot_state::init_ros(ros::NodeHandle n){
 
-  pub = n.advertise<crtk_msgs::robot_command>("crtk_command", 1);
+  pub = n.advertise<crtk_msgs::StringStamped>("crtk_command", 1);
   sub = n.subscribe("crtk_state", 1, &CRTK_robot_state::crtk_state_cb,this);
 
   return true;
@@ -59,20 +59,40 @@ bool CRTK_robot_state::init_ros(ros::NodeHandle n){
 
 void CRTK_robot_state::crtk_state_cb(crtk_msgs::robot_state msg){
 
-  if(msg.is_disabled)     set_disabled_state();
-  else if (msg.is_enabled) set_enabled_state();
-  else if (msg.is_paused) set_paused_state();
-  else if (msg.is_fault) set_fault_state();
+  std::string state = msg.state;
+
+  if (state =="DISABLED"){
+    if(!is_disabled) ROS_INFO("Robot is DISABLED.");
+    set_disabled_state();
+  }
+  else if (state =="ENABLED"){
+    if(!is_enabled) ROS_INFO("Robot is ENABLED.");
+    set_enabled_state();
+  }
+
+  else if (state =="PAUSED"){
+    if(!is_paused) ROS_INFO("Robot is PAUSED.");
+    set_paused_state();
+  }
+  else if (state =="FAULT"){
+    if(!is_fault) ROS_INFO("Robot is FAULT.");
+    set_fault_state();
+  }
+  else{
+    ROS_ERROR("Robot is in unknown state. Acting as if it's in FAULT.");
+    set_fault_state();
+  }
 
   set_homing(msg.is_homing);
   set_homed(msg.is_homed);
-  set_moving(msg.is_moving);
-  set_ready(msg.is_ready);
+  set_busy(msg.is_busy);
+  // set_ready(msg.is_ready);
+  ready_logic();
 
-  has_connected = 1;
+  set_connected(1);
 
   static int count = 0;
-  //ROS_INFO("sub count = %i: I heard that the robot is in [%i,%i,%i,%i].", count, msg.is_disabled, msg.is_enabled, msg.is_paused, msg.is_fault);
+  // ROS_INFO("sub count = %i: I heard that the robot is in [%i,%i,%i,%i] %i.", count, msg.is_disabled, msg.is_enabled, msg.is_paused, msg.is_fault, has_connected);
   ++count;
 
 
@@ -80,10 +100,15 @@ void CRTK_robot_state::crtk_state_cb(crtk_msgs::robot_state msg){
 }
 
 
+bool CRTK_robot_state::ready_logic(){
+  is_ready = !is_busy && is_homed && is_enabled;
+  return is_ready;
+}
+
 void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
   
   static int count = 0;
-  static crtk_msgs::robot_command msg_command;
+  static crtk_msgs::StringStamped msg_command;
 
   //robot command supports ("ENABLE", "DISABLE", "PAUSE", "RESUME", "NULL")
 
@@ -134,19 +159,19 @@ void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
 
 }
 
-char CRTK_robot_state::set_homing(char new_state){
+bool CRTK_robot_state::set_homing(bool new_state){
   is_homing = new_state;
   return is_homing;
 }
-char CRTK_robot_state::set_moving(char new_state){
-  is_moving = new_state;
-  return is_moving;
+bool CRTK_robot_state::set_busy(bool new_state){
+  is_busy = new_state;
+  return is_busy;
 }
-char CRTK_robot_state::set_ready(char new_state){
-  is_ready = new_state;
-  return is_ready;
-}
-char CRTK_robot_state::set_homed(char new_state){
+// bool CRTK_robot_state::set_ready(bool new_state){
+//   is_ready = new_state;
+//   return is_ready;
+// }
+bool CRTK_robot_state::set_homed(bool new_state){
   is_homed = new_state;
   return is_homed;
 }
@@ -202,28 +227,28 @@ char CRTK_robot_state::state_char(){
 }
 
 
-char CRTK_robot_state::get_disabled(){
+bool CRTK_robot_state::get_disabled(){
   return is_disabled;
 }
-char CRTK_robot_state::get_enabled(){
+bool CRTK_robot_state::get_enabled(){
   return is_enabled;
 }
-char CRTK_robot_state::get_paused(){
+bool CRTK_robot_state::get_paused(){
   return is_paused;
 }
-char CRTK_robot_state::get_fault(){
+bool CRTK_robot_state::get_fault(){
   return is_fault;
 }
-char CRTK_robot_state::get_homing(){
+bool CRTK_robot_state::get_homing(){
   return is_homing;
 }
-char CRTK_robot_state::get_moving(){
-  return is_moving;
+bool CRTK_robot_state::get_busy(){
+  return is_busy;
 }
-char CRTK_robot_state::get_ready(){
+bool CRTK_robot_state::get_ready(){
   return is_ready;
 }
-char CRTK_robot_state::get_homed(){
+bool CRTK_robot_state::get_homed(){
   return is_homed;
 }
 char CRTK_robot_state::get_connected(){

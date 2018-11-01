@@ -1,9 +1,5 @@
 Header      hdr
-char       	is_disabled
-char       	is_enabled
-char       	is_paused
-char       	is_fault
-char 		is_homed
-char 		is_ready
-char 		is_moving
-char 		is_homing
+string  state
+bool 		is_homed
+bool    is_busy
+bool 		is_homing

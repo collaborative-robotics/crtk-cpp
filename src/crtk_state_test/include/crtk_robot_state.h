@@ -33,7 +33,7 @@
 #define CRTK_ROBOT_STATE_H_
 #include "ros/ros.h"
 #include <crtk_msgs/robot_state.h>
-#include <crtk_msgs/robot_command.h>
+#include <crtk_msgs/StringStamped.h>
 enum CRTK_robot_command {CRTK_ENABLE, CRTK_DISABLE, CRTK_PAUSE, CRTK_RESUME, CRTK_UNHOME, CRTK_HOME};
 
 class CRTK_robot_state 
@@ -46,20 +46,21 @@ class CRTK_robot_state
   ~CRTK_robot_state(){};
 
 
-  char set_homing(char new_state);
-  char set_moving(char new_state);
-  char set_ready(char new_state);
-  char set_homed(char new_state);
+  bool set_homing(bool new_state);
+  bool set_busy(bool new_state);
+  bool set_ready(bool new_state);
+  bool set_homed(bool new_state);
 
-  char get_disabled();
-  char get_enabled();
-  char get_paused();
-  char get_fault();
-  char get_homing();
-  char get_moving();
-  char get_ready();
-  char get_homed();
+  bool get_disabled();
+  bool get_enabled();
+  bool get_paused();
+  bool get_fault();
+  bool get_homing();
+  bool get_busy();
+  bool get_ready();
+  bool get_homed();
   char get_connected();
+  bool ready_logic();
 
   char set_disabled_state();
   char set_enabled_state();
@@ -77,19 +78,17 @@ class CRTK_robot_state
   ros::Subscriber sub;
 
 private:
-  char is_disabled;
-  char is_enabled;
-  char is_paused;
-  char is_fault;
-  char is_homing;
-  char is_moving;
-  char is_ready;
-  char is_homed;
+  bool is_disabled;
+  bool is_enabled;
+  bool is_paused;
+  bool is_fault;
+  bool is_ready;
+  bool is_homing;
+  bool is_busy;
+  bool is_homed;
 
   char has_connected;
 
 };
-
-bool good_state_value(char);
 
 #endif /* CRTK_STATE_H_ */

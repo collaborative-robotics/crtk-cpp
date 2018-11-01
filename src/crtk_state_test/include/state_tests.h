@@ -10,7 +10,7 @@ int state_testing(raven, CRTK_robot_state, time_t);
 int test_1(raven, CRTK_robot_state, time_t);
 
 // II.    {disabled, homed} + enable [prompt for button press] → {enabled / p_dn}
-// IV-2.  {enabled, moving} + pause → {paused / p_up}
+// IV-2.  {enabled, busy} + pause → {paused / p_up}
 int test_2(raven, CRTK_robot_state, time_t);
 
 // VI-2.    {paused, p_up} + disable → {disabled / e-stop}
@@ -22,11 +22,11 @@ int test_3(raven, CRTK_robot_state, time_t);
 int test_4(raven, CRTK_robot_state, time_t);
 
 // III-1.    {enabled, homing} + disable → {disabled / e-stop}
-// III-2.    {enabled, moving} + disable → {disabled / e-stop}
+// III-2.    {enabled, busy} + disable → {disabled / e-stop}
 int test_5(raven, CRTK_robot_state, time_t);
 
 // VIII-3.    {enabled, homing} + unhome → {disabled, ~homed / e-stop}
-// VIII-4.    {enabled, moving} + unhome → {disabled, ~homed / e-stop}
+// VIII-4.    {enabled, busy} + unhome → {disabled, ~homed / e-stop}
 int test_6(raven, CRTK_robot_state, time_t);
 
 // VIII-6.    {paused, homed} + unhome → {disabled, ~homed / e-stop}

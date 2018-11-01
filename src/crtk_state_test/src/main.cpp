@@ -35,7 +35,7 @@
 
 #include "ros/ros.h"
 #include <crtk_msgs/robot_state.h>
-#include <crtk_msgs/robot_command.h>
+#include <crtk_msgs/StringStamped.h>
 #include "crtk_robot_state.h"
 #include "raven.h"
 #include "main.h"
