@@ -46,7 +46,7 @@ class CRTK_robot_state
   ~CRTK_robot_state(){};
 
 
-  bool set_homing(bool new_state);
+  bool set_homing();
   bool set_busy(bool new_state);
   bool set_ready(bool new_state);
   bool set_homed(bool new_state);

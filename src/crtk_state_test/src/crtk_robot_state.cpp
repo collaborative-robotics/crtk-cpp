@@ -83,9 +83,9 @@ void CRTK_robot_state::crtk_state_cb(crtk_msgs::robot_state msg){
     set_fault_state();
   }
 
-  set_homing(msg.is_homing);
   set_homed(msg.is_homed);
   set_busy(msg.is_busy);
+  set_homing();
   // set_ready(msg.is_ready);
   ready_logic();
 
@@ -159,8 +159,8 @@ void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
 
 }
 
-bool CRTK_robot_state::set_homing(bool new_state){
-  is_homing = new_state;
+bool CRTK_robot_state::set_homing(){
+  is_homing = is_busy && !is_homed;
   return is_homing;
 }
 bool CRTK_robot_state::set_busy(bool new_state){
