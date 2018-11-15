@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>crtk_msgs</name>
+  <name>crtk_servo_test</name>
   <version>0.0.0</version>
-  <description>The crtk_msgs package</description>
+  <description>The crtk_servo_test package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/crtk_msgs</url> -->
+  <!-- <url type="website">http://wiki.ros.org/crtk_state_test</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -49,15 +49,21 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>raven_2</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>crtk_msgs</build_depend>
+  <build_export_depend>raven_2</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>crtk_msgs</build_export_depend>
+  <exec_depend>raven_2</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>crtk_msgs</exec_depend>
 
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
