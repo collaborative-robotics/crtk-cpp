@@ -36,7 +36,7 @@
 #include <crtk_msgs/robot_state.h>
 #include <crtk_msgs/StringStamped.h>
 #include "crtk_robot_state.h"
-#include "raven.h"
+//#include "raven.h"
 #include <sstream>
 #include <ctime>
 #include <iostream>
@@ -49,7 +49,7 @@ tf::Vector3 vec_x(1,0,0);
 tf::Vector3 vec_y(0,1,0);
 tf::Vector3 vec_z(0,0,1);
 
-int servo_testing(Raven raven, CRTK_robot* robot, time_t current_time){
+int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;
   static int current_test = 2;
   static int finished = 0;
@@ -81,7 +81,7 @@ int servo_testing(Raven raven, CRTK_robot* robot, time_t current_time){
   switch(current_test){
     case 1:
     {
-      test_status = test_1(raven, *robot, current_time);
+      test_status = test_1(robot, current_time);
       if (test_status < 0) {
         errors += 1;
         current_test ++;
@@ -95,7 +95,7 @@ int servo_testing(Raven raven, CRTK_robot* robot, time_t current_time){
     }
     case 2:
     {
-      test_status = test_2(raven, *robot, current_time);
+      test_status = test_2(robot, current_time);
       if (test_status < 0) {
         errors += 1;
         current_test ++;
@@ -142,7 +142,7 @@ int servo_testing(Raven raven, CRTK_robot* robot, time_t current_time){
 //    1-2 (measured_cp functionality) Move tool to the right manually.
 //      Pass: Check that the correct axis has been mostly moved in.
 
-int test_1(Raven raven, CRTK_robot robot, time_t current_time){
+int test_1(CRTK_robot *robot, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
   int out=0;
@@ -164,7 +164,7 @@ int test_1(Raven raven, CRTK_robot robot, time_t current_time){
     case 2:
     {
       // (2) check joints
-      out = check_joint_motion_and_vel(&robot, pos_thresh, vel_thresh, current_time, (int)60);
+      out = check_joint_motion_and_vel(robot, pos_thresh, vel_thresh, current_time, (int)60);
       out = step_success(out, &current_step);
       break;
     }
@@ -196,7 +196,7 @@ int test_1(Raven raven, CRTK_robot robot, time_t current_time){
     {
       // (6) check arm1 motion in X
       float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot.arm[0], CRTK_X, dist, 30, current_time);
+      out = check_movement_direction(&robot->arm[0], CRTK_X, dist, 30, current_time);
       out = step_success(out, &current_step);
       break;
     }
@@ -211,7 +211,7 @@ int test_1(Raven raven, CRTK_robot robot, time_t current_time){
     {
       // (8) check arm1 motion in X
       float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot.arm[0], CRTK_Y, dist, 30, current_time);
+      out = check_movement_direction(&robot->arm[0], CRTK_Y, dist, 30, current_time);
       out = step_success(out, &current_step);
       break;
     }
@@ -226,7 +226,7 @@ int test_1(Raven raven, CRTK_robot robot, time_t current_time){
     {
       // (10) check arm1 motion in X
       float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot.arm[1], CRTK_X, dist, 30, current_time);
+      out = check_movement_direction(&robot->arm[1], CRTK_X, dist, 30, current_time);
       out = step_success(out, &current_step);
       break;
     }
@@ -241,7 +241,7 @@ int test_1(Raven raven, CRTK_robot robot, time_t current_time){
     {
       // (12) check arm1 motion in X
       float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot.arm[1], CRTK_Y, dist, 30, current_time);
+      out = check_movement_direction(&robot->arm[1], CRTK_Y, dist, 30, current_time);
       out = step_success(out, &current_step);
       if(out == 1)
         return 1;
@@ -264,7 +264,7 @@ int test_1(Raven raven, CRTK_robot robot, time_t current_time){
 
 
 
-int test_2(Raven raven, CRTK_robot robot, time_t current_time){
+int test_2(CRTK_robot *robot, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
   int out = 0;
@@ -280,47 +280,60 @@ int test_2(Raven raven, CRTK_robot robot, time_t current_time){
     case 1:
     {
       ROS_INFO("======================= Starting test_2-1 ======================= ");
-      ROS_INFO("Moving left arm along X for 2 seconds...");  
-      start_pos1 = robot.arm[0].get_measured_cp();
+      ROS_INFO("Moving left arm along X for 2 seconds..."); 
+      CRTK_robot_command command = CRTK_RESUME;
+      robot->state.crtk_command_pb(command); 
       current_step++;
       break;
     }
     case 2:
     {
-      // (2) send motion command to move robot (for 2 secs)
-      out = robot.arm[0].send_servo_cp_time(vec_x,dist_2,2,current_time);
-      out = step_success(out, &current_step);
+      // (2) check if crtk == enabled
+      if (robot->state.get_enabled()){
+        start_pos1 = robot->arm[0].get_measured_cp();
+        current_step ++;
+      }
       break;
     }
     case 3:
     {
-      // (3) check if it moved in the correct direction (msg)
-      float dist_3 = dist_2*0.95;
-      out = check_movement_distance(&robot.arm[0], start_pos1, CRTK_X, dist_3);
+      // (3) send motion command to move robot (for 2 secs)
+      out = robot->arm[0].send_servo_cr_time(vec_x,dist_2,2,current_time);
       out = step_success(out, &current_step);
-      return 1; // at the end of test_2
+      break;
     }
     case 4:
     {
-      // (4) ask human if it moved (back)?
-      ROS_INFO("Did the robot move away along the table plane? (Y/N)");
-      current_step++;
+      // (4) check if it moved in the correct direction (msg)
+      float dist_3 = dist_2*0.95;
+      out = check_movement_distance(&robot->arm[0], start_pos1, CRTK_X, dist_3);
+      out = step_success(out, &current_step);
       break;
     }
     case 5:
     {
-      // (5) take user input yes or no
+      // (5) ask human if it moved (back)?
+      ROS_INFO("Did the robot move away along the table plane? (Y/N)");
+      current_step++;
+      break;
+    }
+    case 6:
+    {
+      // (6) take user input yes or no
       getline(std::cin,start);
       if(start == "Y" || start == "y"){
         current_step ++;
+        out = 1;
+        out = step_success(out, &current_step);
       }
       else if(start == "N" || start == "n"){
         out = -1;
         out = step_success(out, &current_step);
       }
       else{
-        current_step = 4;
+        current_step = 5;
       }
+      return 1; // at the end of test_2
       break;
     }
     // TODO: repeat step 1~5 for Y direction, then for the other arm!!
@@ -329,7 +342,7 @@ int test_2(Raven raven, CRTK_robot robot, time_t current_time){
     {
       // (12) check arm1 motion in X
       float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot.arm[1], CRTK_Y, dist, 30, current_time);
+      out = check_movement_direction(&robot->arm[1], CRTK_Y, dist, 30, current_time);
       out = step_success(out, &current_step);
       if(out == 1)
         return 1;

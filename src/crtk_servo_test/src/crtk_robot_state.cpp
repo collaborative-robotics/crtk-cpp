@@ -67,6 +67,13 @@ CRTK_robot_state::CRTK_robot_state(ros::NodeHandle n){
 }
 
 
+/**
+ * @brief      initializes ros pubs and subs
+ *
+ * @param[in]  n     ros nodehandle
+ *
+ * @return     success
+ */
 bool CRTK_robot_state::init_ros(ros::NodeHandle n){
 
   pub = n.advertise<crtk_msgs::StringStamped>("crtk_command", 1);
@@ -76,6 +83,11 @@ bool CRTK_robot_state::init_ros(ros::NodeHandle n){
 }
 
 
+/**
+ * @brief      updates local copy of robot's state based on the messages from the robot
+ *
+ * @param[in]  msg   The message from ROS
+ */
 void CRTK_robot_state::crtk_state_cb(crtk_msgs::robot_state msg){
 
   std::string state = msg.state;

@@ -63,19 +63,14 @@ int main(int argc, char **argv)
   static ros::NodeHandle n; 
   ros::Rate loop_rate(LOOP_RATE); 
 
-  
-  //CRTK_robot_state crtk_state(n); //= new CRTK_robot_state(n);
-  //CRTK_robot robot(n, crtk_state);
   CRTK_robot robot(n);
-  //robot.set_state(&crtk_state);
-  Raven raven(n);
 
   int count = 0;
 
   ROS_INFO("Please launch stand alone roscore.");
   while (ros::ok()){
     current_time = time(NULL);
-    servo_testing(raven, &robot, current_time);
+    servo_testing(&robot, current_time);
     robot.run();
     ros::spinOnce();
     loop_rate.sleep();

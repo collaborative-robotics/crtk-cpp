@@ -109,10 +109,11 @@ void CRTK_robot::crtk_measured_js_arm2_cb(sensor_msgs::JointState msg){
 
 
 void CRTK_robot::check_motion_commands_to_publish(){
+  // TODO check robot state first and skip or warn
+  // ROS_INFO("published something...");
   for(int i=0;i<2;i++){
     if(arm[i].get_servo_cr_updated()){ // TODO: add more stuff 
       publish_servo_cr(i);
-      arm[i].reset_servo_cr_updated();
     }  
   }
 }
@@ -132,6 +133,13 @@ void CRTK_robot::publish_servo_cr(char i){
   tf::Transform cmd = arm[i].get_servo_cr_command(); 
   tf::transformTFToMsg(cmd,msg.transform);
 
-  if(i == 0) pub_servo_cr1.publish(msg);
-  else if(i == 1) pub_servo_cr2.publish(msg);
+
+  if(i == 0) {
+    pub_servo_cr1.publish(msg);
+    arm[i].reset_servo_cr_updated();
+  }
+  else if(i == 1){
+    pub_servo_cr2.publish(msg);
+    arm[i].reset_servo_cr_updated();
+  } 
 }

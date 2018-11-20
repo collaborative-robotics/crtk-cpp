@@ -30,14 +30,14 @@
 #include "defines.h"
 #include "crtk_robot_state.h"
 #include "crtk_robot.h"
-#include "raven.h"
+// #include "raven.h"
 
 #ifndef _SERVO_TESTS_
 #define _SERVO_TESTS_
 
 
 
-int servo_testing(Raven, CRTK_robot*, time_t);
+int servo_testing(CRTK_robot*, time_t);
 
 // 1 Motion measured query testing
 //    1-1 (measured_js functionality) Move all joints in series manually.
@@ -45,8 +45,8 @@ int servo_testing(Raven, CRTK_robot*, time_t);
 //      Pass: Check that each joint velocity has a non-zero value.
 //    1-2 (measured_cp functionality) Move tool to the right manually.
 //      Pass: Check that the correct axis has been mostly moved in.
-int test_1(Raven, CRTK_robot, time_t);
-int test_2(Raven, CRTK_robot, time_t);
+int test_1(CRTK_robot *, time_t);
+int test_2(CRTK_robot *, time_t);
 
 // // II.    {disabled, homed} + enable [prompt for button press] → {enabled / p_dn}
 // // IV-2.  {enabled, busy} + pause → {paused / p_up}

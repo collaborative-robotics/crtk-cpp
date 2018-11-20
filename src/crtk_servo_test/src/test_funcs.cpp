@@ -99,31 +99,13 @@ int check_joint_motion_and_vel(CRTK_robot* robot, float pos_thresh, float vel_th
     ROS_INFO("(vel1 done)-- %i, %i, %i, %i, %i, %i, %i", vel1_done[0],vel1_done[1],vel1_done[2], vel1_done[3],vel1_done[4],vel1_done[5],vel1_done[6]);
     ROS_INFO("(vel2 done)-- %i, %i, %i, %i, %i, %i, %i", vel2_done[0],vel2_done[1],vel2_done[2], vel2_done[3],vel2_done[4],vel2_done[5],vel2_done[6]);
     ROS_INFO(" ");
-    //  ROS_INFO("(start1 - pos1)-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", 
-    //   start_pos1[0]-curr_pos1[0],start_pos1[1]-curr_pos1[1],start_pos1[2]-curr_pos1[2],
-    //   start_pos1[3]-curr_pos1[3],start_pos1[4]-curr_pos1[4],start_pos1[5]-curr_pos1[5],start_pos1[6]-curr_pos1[6]);
-    // ROS_INFO("(start2 - pos2)-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", 
-    //   start_pos2[0]-curr_pos2[0],start_pos2[1]-curr_pos2[1],start_pos2[2]-curr_pos2[2],
-    //   start_pos2[3]-curr_pos2[3],start_pos2[4]-curr_pos2[4],start_pos2[5]-curr_pos2[5],start_pos2[6]-curr_pos2[6]);
-    // ROS_INFO("vel1-- %f, %f, %f, %f, %f, %f, %f", curr_vel1[0],curr_vel1[1],curr_vel1[2],curr_vel1[3],curr_vel1[4],curr_vel1[5],curr_vel1[6]);
-    // ROS_INFO("vel2-- %f, %f, %f, %f, %f, %f, %f", curr_vel2[0],curr_vel2[1],curr_vel2[2],curr_vel2[3],curr_vel2[4],curr_vel2[5],curr_vel2[6]);
-    // ROS_INFO("max_vel1-- %f, %f, %f, %f, %f, %f, %f", max_vel1[0],max_vel1[1],max_vel1[2],max_vel1[3],max_vel1[4],max_vel1[5],max_vel1[6]);
-    // ROS_INFO("max_vel2-- %f, %f, %f, %f, %f, %f, %f", max_vel2[0],max_vel2[1],max_vel2[2],max_vel2[3],max_vel2[4],max_vel2[5],max_vel2[6]);
-    // ROS_INFO("pos1_done %i\tpos2_done %i\tvel1_done %i\tvel2_done %i",done_sum(pos1_done),done_sum(pos2_done),done_sum(vel1_done),done_sum(vel2_done));
-    // ROS_INFO(" ");
+
   }
   count ++;
 
   if((done_sum(pos1_done) == MAX_JOINTS) && (done_sum(pos2_done) == MAX_JOINTS) && (done_sum(vel1_done) == MAX_JOINTS) && (done_sum(vel2_done) == MAX_JOINTS)){
     //success!
-    //  ROS_INFO("(start1 - pos1)-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", 
-    //   start_pos1[0]-curr_pos1[0],start_pos1[1]-curr_pos1[1],start_pos1[2]-curr_pos1[2],
-    //   start_pos1[3]-curr_pos1[3],start_pos1[4]-curr_pos1[4],start_pos1[5]-curr_pos1[5],start_pos1[6]-curr_pos1[6]);
-    // ROS_INFO("(start2 - pos2)-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", 
-    //   start_pos2[0]-curr_pos2[0],start_pos2[1]-curr_pos2[1],start_pos2[2]-curr_pos2[2],
-    //   start_pos2[3]-curr_pos2[3],start_pos2[4]-curr_pos2[4],start_pos2[5]-curr_pos2[5],start_pos2[6]-curr_pos2[6]);
-    // ROS_INFO("vel1-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", curr_vel1[0],curr_vel1[1],curr_vel1[2],curr_vel1[3],curr_vel1[4],curr_vel1[5],curr_vel1[6]);
-    // ROS_INFO("vel2-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", curr_vel2[0],curr_vel2[1],curr_vel2[2],curr_vel2[3],curr_vel2[4],curr_vel2[5],curr_vel2[6]);
+
     ROS_INFO("max_vel1-- %f, %f, %f, %f, %f, %f, %f", max_vel1[0],max_vel1[1],max_vel1[2],max_vel1[3],max_vel1[4],max_vel1[5],max_vel1[6]);
     ROS_INFO("max_vel2-- %f, %f, %f, %f, %f, %f, %f", max_vel2[0],max_vel2[1],max_vel2[2],max_vel2[3],max_vel2[4],max_vel2[5],max_vel2[6]);
     ROS_INFO("pos1_done %i\tpos2_done %i\tvel1_done %i\tvel2_done %i",done_sum(pos1_done),done_sum(pos2_done),done_sum(vel1_done),done_sum(vel2_done));
@@ -139,14 +121,7 @@ int check_joint_motion_and_vel(CRTK_robot* robot, float pos_thresh, float vel_th
     if (done_sum(vel1_done) != MAX_JOINTS) ROS_INFO("arm 1 didn't move fast enough");
     if (done_sum(vel2_done) != MAX_JOINTS) ROS_INFO("arm 2 didn't move fast enough");
 
-    // ROS_INFO("(start1 - pos1)-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", 
-    //   start_pos1[0]-curr_pos1[0],start_pos1[1]-curr_pos1[1],start_pos1[2]-curr_pos1[2],
-    //   start_pos1[3]-curr_pos1[3],start_pos1[4]-curr_pos1[4],start_pos1[5]-curr_pos1[5],start_pos1[6]-curr_pos1[6]);
-    // ROS_INFO("(start2 - pos2)-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", 
-    //   start_pos2[0]-curr_pos2[0],start_pos2[1]-curr_pos2[1],start_pos2[2]-curr_pos2[2],
-    //   start_pos2[3]-curr_pos2[3],start_pos2[4]-curr_pos2[4],start_pos2[5]-curr_pos2[5],start_pos2[6]-curr_pos2[6]);
-    // ROS_INFO("vel1-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", curr_vel1[0],curr_vel1[1],curr_vel1[2],curr_vel1[3],curr_vel1[4],curr_vel1[5],curr_vel1[6]);
-    // ROS_INFO("vel2-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", curr_vel2[0],curr_vel2[1],curr_vel2[2],curr_vel2[3],curr_vel2[4],curr_vel2[5],curr_vel2[6]);
+
     ROS_INFO("max_vel1-- %f, %f, %f, %f, %f, %f, %f", max_vel1[0],max_vel1[1],max_vel1[2],max_vel1[3],max_vel1[4],max_vel1[5],max_vel1[6]);
     ROS_INFO("max_vel2-- %f, %f, %f, %f, %f, %f, %f", max_vel2[0],max_vel2[1],max_vel2[2],max_vel2[3],max_vel2[4],max_vel2[5],max_vel2[6]);
     ROS_INFO("pos1_done %i\tpos2_done %i\tvel1_done %i\tvel2_done %i",done_sum(pos1_done),done_sum(pos2_done),done_sum(vel1_done),done_sum(vel2_done));
@@ -167,10 +142,8 @@ int step_success(int status, int* current_step){
     return -out;
   }
   else if (status == 1){
-    // ROS_INFO("before++: *%i", *current_step);
-    *current_step = *current_step + 1;
-    // ROS_INFO("after++: *%i", *current_step);
     ROS_INFO("step %i success.", *current_step);
+    *current_step = *current_step + 1;
     return 1;
   }
   else if(status == 0){

@@ -170,7 +170,7 @@ int CRTK_motion::set_measured_js_eff(float js_value[MAX_JOINTS], int length){
   return 1;
 }
 
-char CRTK_motion::send_servo_cp_time(tf::Vector3 vec, float total_dist, float duration, time_t curr_time){
+char CRTK_motion::send_servo_cr_time(tf::Vector3 vec, float total_dist, float duration, time_t curr_time){
   static time_t start_time;
   static char start = 1;
   char out=0;
@@ -193,32 +193,39 @@ char CRTK_motion::send_servo_cp_time(tf::Vector3 vec, float total_dist, float du
   // send command
   if(!vec.normalized()){
     vec = vec.normalize();
-    ROS_INFO("Servo_cp direction not normalized. (set to normalized)");
+    ROS_INFO("Servo_cr direction not normalized. (set to normalized)");
   }
-  out = send_servo_cp(tf::Transform(tf::Matrix3x3(1,0,0,0,1,0,0,0,1),vec*step));
+  out = send_servo_cr(tf::Transform(tf::Matrix3x3(1,0,0,0,1,0,0,0,1),vec*step));
 
   // check time
   if(curr_time-start_time > duration){
     ROS_INFO("%f sec movement complete.",duration);
+    
+    //at end of time, send 0 command
+    tf::Transform ident;
+    ident.setIdentity();
+    out = send_servo_cr(ident);
+
+    //reset to be used again
     start = 1;
     return 1;
   }
   return out;
 }  
 
-char CRTK_motion::send_servo_cp(tf::Transform trans){
+char CRTK_motion::send_servo_cr(tf::Transform trans){
   // check command
   tf::Vector3 vec = trans.getOrigin();
   float ang = trans.getRotation().getAngle();
   if(vec.length() > STEP_TRANS_LIMIT || ang > STEP_ROT_LIMIT){
-    ROS_ERROR("Servo_cp step limit exceeded. Motion not sent.");
+    ROS_ERROR("Servo_cr step limit exceeded. Motion not sent.");
     reset_servo_cr_updated();
     return -1;
   }
-
   // send command
   servo_cr_updated = 1;
   servo_cr_command = trans;
+
   return 0;
 }
 
@@ -228,6 +235,8 @@ void CRTK_motion::reset_servo_cr_updated(){
 }
 
 char CRTK_motion::get_servo_cr_updated(){
+  // servo_cr_updated = 1;
+  // ROS_INFO("get says: %i", servo_cr_updated);
   return servo_cr_updated;
 }
 
