@@ -31,7 +31,6 @@
 #include <cmath>
 
 
-
 // if !crtk_state_check(CRTK_DISABLED, robot_state.get_state(), &current_step) return -1;
 
 int crtk_state_check(CRTK_robot_state_enum desired, CRTK_robot_state_enum actual, int current_step){
@@ -236,19 +235,92 @@ int check_movement_distance(CRTK_motion* arm,tf::Transform start_pos, CRTK_axis 
   tf::Transform curr_pos = arm->get_measured_cp();
   float start_val = axis_value(start_pos.getOrigin(),axis);
   float curr_val = axis_value(curr_pos.getOrigin(),axis);
-  if(curr_val - start_val > 1.2*dist){
-    ROS_INFO("Caution - moved too far.");
+
+  if ((curr_val - start_val)*dist <= 0){ // opposite direction
+    ROS_INFO("Movement is in the wrong direction.\n(curr pos (%f) - start pos (%f) = %f (expected distance: %f)",
+      curr_val, start_val, curr_val - start_val, dist);
+    return -1;
+  }  
+  else if(fabs(curr_val - start_val) > fabs(1.2*dist)){
+    ROS_INFO("Caution - moved too far.\n(curr pos (%f) - start pos (%f) = %f (expected distance: %f)",
+      curr_val, start_val, curr_val - start_val, dist);
     return 1;    
   }
-  else if(curr_val - start_val > dist){
+  else if(fabs(curr_val - start_val) > fabs(dist)){
     return 1;
   }
-  else if(curr_val - start_val >= 0){
-    ROS_INFO("Didn't move far enough.");
-    return -1;
-  }
   else{
-    ROS_INFO("Movement is in the wrong direction.");
+    ROS_INFO("Didn't move far enough. \n(curr pos (%f) - start pos (%f) = %f (expected distance: %f)",
+      curr_val, start_val, curr_val - start_val, dist);
     return -1;
   }
+}
+
+enum cube_dir{cube_x, cube_y, cube_z};
+char front = 0b100;
+char left  = 0b010;
+char lower = 0b001;
+
+//todo, check prev dir
+char rand_cube_dir(char *curr_vertex, tf::Vector3 *move_vec, CRTK_axis *prev_axis){
+  char choice = *prev_axis;
+  while ((CRTK_axis)choice == *prev_axis){
+    choice = std::rand() % 3; //random int 0-2
+  }
+
+  ROS_INFO("\t \t Randomly Picked %i", choice);
+
+  switch((cube_dir)choice){
+    case (cube_x):
+    {
+      ROS_INFO("Picked X!, %i", *curr_vertex);
+      *prev_axis = CRTK_X ;
+
+      if(*curr_vertex & front){
+        *move_vec = tf::Vector3(1,0,0);
+        *curr_vertex &= ~front;
+
+      } else {
+        *move_vec = tf::Vector3(-1,0,0);
+        *curr_vertex |= front;
+      }
+      break;
+    }    
+    case (cube_y):
+    {
+      ROS_INFO("Picked Y!, %i", *curr_vertex);
+      *prev_axis = CRTK_Y ;
+
+      if(*curr_vertex & left){
+        *move_vec = tf::Vector3(0,1,0);
+        *curr_vertex &= ~left;
+
+      } else {
+        *move_vec = tf::Vector3(0,-1,0);
+        *curr_vertex |= left;
+      }
+      break;
+    }    
+    case (cube_z):
+    {
+      ROS_INFO("Picked Z!, %i", *curr_vertex);
+      *prev_axis = CRTK_Z;
+
+      if(*curr_vertex & lower){
+        *move_vec = tf::Vector3(0,0,1);
+        *curr_vertex &= ~lower;
+
+      } else {
+        *move_vec = tf::Vector3(0,0,-1);
+        *curr_vertex |= lower;
+      }
+      break;
+    }
+    default:
+    {
+      ROS_ERROR("unknown cube dir");
+      break;
+    }
+  }
+  return 1;
 }

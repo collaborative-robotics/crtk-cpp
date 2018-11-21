@@ -31,9 +31,10 @@
 #ifndef _DEFINES_H_
 #define _DEFINES_H_
 
+#include "tf/tf.h"
 #include <cmath> 
 #define MM_TO_M   * 0.001
-#define LOOP_RATE 10          // Hz (TODO increase to 1000Hz?)
+#define LOOP_RATE 1000          // Hz (TODO increase to 1000Hz?)
 
 
 #define MAX_JOINTS 7
@@ -46,4 +47,7 @@ enum CRTK_axis {CRTK_X, CRTK_Y, CRTK_Z};
 enum CRTK_input {CRTK_servo, CRTK_interp, CRTK_move, CRTK_out};
 enum CRTK_robot_command {CRTK_ENABLE, CRTK_DISABLE, CRTK_PAUSE, CRTK_RESUME, CRTK_UNHOME, CRTK_HOME};
 enum CRTK_robot_state_enum {CRTK_ENABLED, CRTK_DISABLED, CRTK_PAUSED, CRTK_FAULT};
+
+
+
 #endif

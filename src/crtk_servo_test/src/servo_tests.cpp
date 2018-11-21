@@ -51,11 +51,11 @@ tf::Vector3 vec_z(0,0,1);
 
 int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;
-  static int current_test = 2;
+  static int current_test = 3;
   static int finished = 0;
   static int errors = 0;
   int test_status;
-  int num_of_tests = 2;
+  int num_of_tests = 5;
 
 
   // wait for crtk state message to be published before testing
@@ -95,18 +95,34 @@ int servo_testing( CRTK_robot* robot, time_t current_time){
     }
     case 2:
     {
-      test_status = test_2(robot, current_time);
+      test_status = test_2_1(robot, current_time);
       if (test_status < 0) {
         errors += 1;
         current_test ++;
-        ROS_ERROR("test_2 fail: %i", test_status);
+        ROS_ERROR("test_2_1 fail: %i", test_status);
       }
       else if (test_status > 0) {
         current_test ++;
-        ROS_INFO("test_2 passed: %i", test_status);
+        ROS_INFO("test_2_1 passed: %i", test_status);
       }
       break;
     }
+
+    case 3:
+    {
+      test_status = test_2_2(robot, current_time);
+      if (test_status < 0) {
+        errors += 1;
+        current_test ++;
+        ROS_ERROR("test_2_2 fail: %i", test_status);
+      }
+      else if (test_status > 0) {
+        current_test ++;
+        ROS_INFO("test_2_2 passed: %i", test_status);
+      }
+      break;
+    }
+
     default:
     {
       if (finished == 0 && errors != 0){
@@ -128,7 +144,7 @@ int servo_testing( CRTK_robot* robot, time_t current_time){
   }
 
   if(current_test > num_of_tests && errors == 0) {
-    ROS_INFO("State testing success!!!");
+    ROS_INFO("Servo motion testing success!!!");
   }
 
   return errors;
@@ -263,66 +279,103 @@ int test_1(CRTK_robot *robot, time_t current_time){
 }
 
 
-
-int test_2(CRTK_robot *robot, time_t current_time){
+// 2-1 Relative (command: servo_cr) Axis motion Test
+// (functionality) move along X axis for 2 secs (both arms)
+//    Pass: Check raven state
+// (functionality) move along Y axis for 2 secs (both arms)
+//    Pass: Check raven state
+// (functionality) move along Z axis for 2 secs (both arms)
+//    Pass: Check raven state
+int test_2_1(CRTK_robot *robot, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
   int out = 0;
-  std::string start;
+  std::string start, s1,s2;
   float pos_thresh = 10 DEG_TO_RAD;
   float vel_thresh = 10 DEG_TO_RAD;
-
-  float dist_2 = 0.02; // 20 mm total
-  static tf::Transform start_pos1, start_pos2, curr_pos1,curr_pos2;
+  float dist = 0.02; // 20 mm total
+  float completion_percentage_thres = 0.85;  // 0.95;
+  static tf::Transform start_pos;
 
   switch(current_step)
   {
     case 1:
     {
       ROS_INFO("======================= Starting test_2-1 ======================= ");
-      ROS_INFO("Moving left arm along X for 2 seconds..."); 
+      ROS_INFO("Start and home robot if not already.");
+      ROS_INFO("(Press 'Enter' when done.)"); 
+      current_step ++;
+      break;
+    }
+    case 2:
+    {
+      // (2) wait for 'Enter' key press
+      getline(std::cin,start);
+      if(start == ""){
+        current_step ++;
+      }
+      break;
+    }
+    case 3:    case 9:    case 15:    case 21:
+    {
+      // (3) send resume command to enable robot
+      ROS_INFO("CRTK_RESUME command sent.");
+      ROS_INFO("Waiting for robot to enter CRTK_ENABLED state..."); 
       CRTK_robot_command command = CRTK_RESUME;
       robot->state.crtk_command_pb(command); 
       current_step++;
       break;
     }
-    case 2:
+    case 4:    case 10:    case 16:   case 22:
     {
-      // (2) check if crtk == enabled
+      // (4) check if crtk == enabled
       if (robot->state.get_enabled()){
-        start_pos1 = robot->arm[0].get_measured_cp();
+        s1 = (current_step == 4 || current_step == 10) ? "left" : "right";
+        s2 = (current_step == 4 || current_step == 16) ? "-Z"    : "X";
+        int curr_arm = (current_step == 4 || current_step == 10) ? 0 : 1;
+        ROS_INFO("Moving %s arm along %s for 2 seconds...",s1.c_str(),s2.c_str()); 
+        start_pos = robot->arm[curr_arm].get_measured_cp();
         current_step ++;
       }
       break;
     }
-    case 3:
+    case 5:    case 11:    case 17:   case 23:
     {
-      // (3) send motion command to move robot (for 2 secs)
-      out = robot->arm[0].send_servo_cr_time(vec_x,dist_2,2,current_time);
+      // (5) send motion command to move robot (for 2 secs)
+      int curr_arm = (current_step == 5 || current_step == 11) ? 0 : 1;
+      tf::Vector3 move_vec = (current_step == 5 || current_step == 17) ? -vec_z : vec_x;
+      out = robot->arm[curr_arm].send_servo_cr_time(move_vec,dist,2,current_time);
       out = step_success(out, &current_step);
       break;
     }
-    case 4:
+    case 6:    case 12:    case 18:   case 24:
     {
-      // (4) check if it moved in the correct direction (msg)
-      float dist_3 = dist_2*0.95;
-      out = check_movement_distance(&robot->arm[0], start_pos1, CRTK_X, dist_3);
+      // (6) check if it moved in the correct direction (msg)
+      int curr_arm = (current_step == 6 || current_step == 12) ? 0 : 1;
+      CRTK_axis curr_axis = (current_step == 6 || current_step == 18) ? CRTK_Z : CRTK_X;
+      float curr_sign = (current_step == 6 || current_step == 18) ? -1.0 : 1.0;
+      float check_thres = curr_sign * dist * completion_percentage_thres;
+      out = check_movement_distance(&robot->arm[curr_arm], start_pos, curr_axis,check_thres);
       out = step_success(out, &current_step);
       break;
     }
-    case 5:
+    case 7:    case 13:    case 19:   case 25:
     {
-      // (5) ask human if it moved (back)?
-      ROS_INFO("Did the robot move away along the table plane? (Y/N)");
+      // (7) ask human if it moved (back)?
+      // CRTK_robot_command command = CRTK_PAUSE;
+      // robot->state.crtk_command_pb(command); 
+      if(current_step == 7 || current_step == 19)
+        ROS_INFO("Did the robot move down toward the table? (Y/N)");
+      else
+        ROS_INFO("Did the robot move away along the table plane? (Y/N)");
       current_step++;
       break;
     }
-    case 6:
+    case 8:    case 14:    case 20:    case 26:
     {
-      // (6) take user input yes or no
+      // (8) take user input yes or no
       getline(std::cin,start);
       if(start == "Y" || start == "y"){
-        current_step ++;
         out = 1;
         out = step_success(out, &current_step);
       }
@@ -331,29 +384,140 @@ int test_2(CRTK_robot *robot, time_t current_time){
         out = step_success(out, &current_step);
       }
       else{
-        current_step = 5;
+        current_step --;
       }
-      return 1; // at the end of test_2
+      if(current_step == 27 && out == 1)
+        return 1; // at the end of test 2
       break;
     }
-    // TODO: repeat step 1~5 for Y direction, then for the other arm!!
-
-    case 12:
-    {
-      // (12) check arm1 motion in X
-      float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot->arm[1], CRTK_Y, dist, 30, current_time);
-      out = step_success(out, &current_step);
-      if(out == 1)
-        return 1;
-      break;
-    }
-
   }
   if(out < 0) return out;
   return 0;
 }
 
+// 2-2 Relative (command: servo_cr) Cube tracing Test
+// (functionality) Trace a cube
+//    Pass: Ask user!
+
+int test_2_2(CRTK_robot *robot, time_t current_time){
+  static int current_step = 1;
+  static time_t pause_start;
+  int out = 0, out1 = 0, out2 = 0;
+  std::string start, s1,s2;
+
+  float dist = 0.02; // 20 mm total
+  float completion_percentage_thres = 0.85;  // 0.95;
+  static tf::Transform start_pos1, start_pos2;
+
+  static char curr_vertex0 = 0b110; //start arm 0 in front left upper
+  static char curr_vertex1 = 0b110; //start arm 1 in front left upper
+  static tf::Vector3 move_vec0, move_vec1;
+  static CRTK_axis prev_axis0 = CRTK_Z;
+  static CRTK_axis prev_axis1 = CRTK_Z; 
+
+  static char edge_count = 0;
+
+  switch(current_step)
+  {
+    case 1:
+    {
+      ROS_INFO("======================= Starting test_2-2 ======================= ");
+      ROS_INFO("Start and home robot if not already.");
+      ROS_INFO("(Press 'Enter' when done.)"); 
+      current_step ++;
+      break;
+    }
+    case 2:
+    {
+      // (2) wait for 'Enter' key press
+      getline(std::cin,start);
+      if(start == ""){
+        current_step ++;
+      }
+      break;
+    }
+    case 3:
+    {
+      // (3) send resume command to enable robot
+      ROS_INFO("CRTK_RESUME command sent.");
+      ROS_INFO("Waiting for robot to enter CRTK_ENABLED state..."); 
+      CRTK_robot_command command = CRTK_RESUME;
+      robot->state.crtk_command_pb(command); 
+      current_step++;
+      break;
+    }
+    case 4:
+    {
+      // (4) send motion command to move robot arms down (for 2 secs)
+      if (robot->state.get_enabled()){
+        out = robot->arm[0].send_servo_cr_time(-vec_z,dist,2,current_time);
+        // if(out1 != 1) out1 = robot->arm[0].send_servo_cr_time(-vec_z,dist,2,current_time);
+        // if(out2 != 1) out2 = robot->arm[1].send_servo_cr_time(-vec_z,dist,2,current_time);
+
+        out = step_success(out, &current_step);
+        //out = step_success(out1 && out2, &current_step);
+
+      }
+      break;
+    }
+    case 5:
+    {
+      // (5) record start pos
+      ROS_INFO("Start randomly tracing a cube.");
+      current_step ++;
+      break;
+    }
+    case 6:
+    {
+      rand_cube_dir(&curr_vertex0, &move_vec0, &prev_axis0);
+      //rand_cube_dir(&curr_vertex1, &move_vec1, &prev_axis1);
+      ROS_INFO("\t step 6 length -> %f", move_vec0.length());
+
+      edge_count++;
+
+      current_step++;
+      break;
+    }
+    case 7:
+    {
+     
+      out = robot->arm[0].send_servo_cr_time(move_vec0,dist,2,current_time);
+      //ROS_INFO("step 7 length -> %f", move_vec0.length());
+      //out = robot->arm[1].send_servo_cr_time(move_vec1,dist,2,current_time);
+      out = step_success(out, &current_step);
+      if(out && edge_count < 11) current_step = 6; 
+      break;
+    }
+    case 8:
+    {
+      ROS_INFO("Did the robot make a nice cube? (Y/N)");
+      current_step++;
+      break;
+    }
+
+    case 9:
+    {
+      // (9) take user input yes or no
+      getline(std::cin,start);
+      if(start == "Y" || start == "y"){
+        out = 1;
+        out = step_success(out, &current_step);
+      }
+      else if(start == "N" || start == "n"){
+        out = -1;
+        out = step_success(out, &current_step);
+      }
+      else{
+        current_step --;
+      }
+      if(out == 1)
+        return 1; // at the end of test 2
+      break;
+    }
+  }
+  if(out < 0) return out;
+  return 0;
+}
 /*
 
 // II.    {paused, homed} + resume [prompt for button press] → {enabled / p_dn}

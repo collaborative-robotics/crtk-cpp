@@ -46,33 +46,21 @@ int servo_testing(CRTK_robot*, time_t);
 //    1-2 (measured_cp functionality) Move tool to the right manually.
 //      Pass: Check that the correct axis has been mostly moved in.
 int test_1(CRTK_robot *, time_t);
-int test_2(CRTK_robot *, time_t);
 
-// // II.    {disabled, homed} + enable [prompt for button press] → {enabled / p_dn}
-// // IV-2.  {enabled, busy} + pause → {paused / p_up}
-// int test_2(Raven, CRTK_robot_state, time_t);
 
-// // VI-2.    {paused, p_up} + disable → {disabled / e-stop}
-// // VIII-2.    {disabled, homed} + unhome → {disabled, ~homed / e-stop} 
-// int test_3(Raven, CRTK_robot_state, time_t);
+// 2-1 Relative (command: servo_cr) Axis motion Test
+// (functionality) move along X axis for 2 secs (both arms)
+// 		Pass: Check raven state
+// (functionality) move along Y axis for 2 secs (both arms)
+// 		Pass: Check raven state
+// (functionality) move along Z axis for 2 secs (both arms)
+// 		Pass: Check raven state
+int test_2_1(CRTK_robot *, time_t);
 
-// // IV-1.    {enabled, homing} + pause → {disabled / e-stop}
-// // VIII-1.  {disabled, ~homed} + unhome → {disabled, ~homed / e-stop}
-// int test_4(Raven, CRTK_robot_state, time_t);
 
-// // III-1.    {enabled, homing} + disable → {disabled / e-stop}
-// // III-2.    {enabled, busy} + disable → {disabled / e-stop}
-// int test_5(Raven, CRTK_robot_state, time_t);
-
-// // VIII-3.    {enabled, homing} + unhome → {disabled, ~homed / e-stop}
-// // VIII-4.    {enabled, busy} + unhome → {disabled, ~homed / e-stop}
-// int test_6(Raven, CRTK_robot_state, time_t);
-
-// // VIII-6.    {paused, homed} + unhome → {disabled, ~homed / e-stop}
-// int test_7(Raven, CRTK_robot_state, time_t);
-
-// // V-3.    {disabled, ~homed} + home [prompt for button press] → {enabled, homing / init}
-// // V-1.    {enabled, homed} + home [prompt for button press] → {enabled, homing / init}
-// // V-2.    {paused, homed} + home [prompt for button press] → {enabled, homing / init}
-// int test_8(Raven, CRTK_robot_state, time_t);     
+// 2-2 Relative (command: servo_cr) Cube tracing Test
+// (functionality) Trace a cube
+//    Pass: Ask user!
+int test_2_2(CRTK_robot *, time_t);
+ 
 #endif
