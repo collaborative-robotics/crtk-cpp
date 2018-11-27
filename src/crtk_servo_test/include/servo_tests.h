@@ -63,4 +63,9 @@ int test_2_1(CRTK_robot *, time_t);
 //    Pass: Ask user!
 int test_2_2(CRTK_robot *, time_t);
  
+// 2-3 Relative (command: servo_cr) Orientation axis test
+// (functionality) rotate about X,Y,Z axis for 2 secs (30 deg)
+// Pass: ask user!
+int test_2_3(CRTK_robot *, time_t);
+
 #endif

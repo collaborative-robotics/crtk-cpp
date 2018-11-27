@@ -215,6 +215,68 @@ int check_movement_direction(CRTK_motion* arm, CRTK_axis axis, float dist, int c
   return 0;
 }
 
+/**
+ * @brief      Check for any rotation not around any particular axis
+ *
+ * @param      arm           The arm
+ * @param[in]  angle         The angle
+ * @param[in]  check_time    The check time
+ * @param[in]  current_time  The current time
+ *
+ * @return     { description_of_the_return_value }
+ */
+int check_movement_rotation(CRTK_motion* arm, float angle, int check_time, long current_time, tf::Transform start_pos){
+  static int start = 1;
+  static tf::Quaternion start_ori = start_pos.getRotation();
+  static float max_angle;
+  static time_t start_time;
+
+  tf::Quaternion curr_ori;
+  float curr_angle;
+
+  if(angle == 0){
+      ROS_ERROR("Zero angle specified.");
+      return -1;
+  }
+
+  if(start){
+    start_time = current_time;
+    start = 0;
+    max_angle = 0;
+  }
+
+  curr_ori = arm->get_measured_cp().getRotation();
+  curr_angle = 2*curr_ori.angle(start_ori);
+
+  // save maxa distance
+  if(fabs(curr_angle)>fabs(max_angle)){
+    max_angle = curr_angle;
+  }
+
+  static int count = 0;
+  count ++;
+  if(count%500 == 0){
+    ROS_INFO("curr_angle = %f",curr_angle);
+    count = 0;
+  }
+
+
+  // check movement along axis
+  if(fabs(curr_angle) > fabs(angle)){
+    ROS_INFO("success!");
+    start = 1;
+    return 1;
+  }
+
+  // check for timeout
+  if(current_time - start_time > check_time){
+    ROS_ERROR("Check movement timeout.");
+    start = 1;
+    return -1;
+  }
+  return 0;
+}
+
 float axis_value(tf::Vector3 vec, CRTK_axis axis){
   if(axis == CRTK_X){
     return vec.x();
@@ -227,7 +289,7 @@ float axis_value(tf::Vector3 vec, CRTK_axis axis){
   }
   else{
     ROS_ERROR("Unknown axis.");
-    return NULL;
+    return 0;
   }
 }
 

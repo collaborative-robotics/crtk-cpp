@@ -45,5 +45,6 @@ int done_sum(int*);
 int check_movement_direction(CRTK_motion* , CRTK_axis , float , int, long);
 float axis_value(tf::Vector3, CRTK_axis);
 int check_movement_distance(CRTK_motion*,tf::Transform, CRTK_axis, float);
+int check_movement_rotation(CRTK_motion*, float, int, long, tf::Transform);
 char rand_cube_dir(char *, tf::Vector3 *, CRTK_axis *);
 #endif
