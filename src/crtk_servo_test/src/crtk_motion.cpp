@@ -210,16 +210,19 @@ char CRTK_motion::send_servo_cr_time(tf::Vector3 vec, float total_dist, float du
     vec = vec.normalize();
     ROS_INFO("Servo_cr direction not normalized. (set to normalized)");
   }
-  out = send_servo_cr(tf::Transform(tf::Quaternion(0,0,0,0),vec*step));
+  tf::Transform tf_out = tf::Transform();
+  tf_out.setIdentity();
+  tf_out.setOrigin(vec*step);
+  out = send_servo_cr(tf_out);
 
   // check time
   if(curr_time - motion_start_time > duration){
     ROS_INFO("%f sec movement complete.",duration);
     
     //at end of time, send 0 command
-    tf::Transform ident = tf::Transform(tf::Quaternion(0,0,0,0));
+    tf::Transform ident = tf::Transform();
     // ident.setIdentity();
-    out = send_servo_cr(ident);
+    // out = send_servo_cr(ident);
     return 1;
   }
   return out;
@@ -264,10 +267,10 @@ char CRTK_motion::send_servo_cr_rot_time(tf::Vector3 vec, float total_angle, flo
   if(curr_time - motion_start_time > duration){
     ROS_INFO("%f sec movement complete.",duration);
     
-    //at end of time, send 0 command
-    tf::Transform ident = tf::Transform(tf::Quaternion(0,0,0,0));
-    // ident.setIdentity();
-    out = send_servo_cr(ident);
+    // //at end of time, send 0 command
+    // tf::Transform ident = tf::Transform();
+    // // ident.setIdentity();
+    // out = send_servo_cr(ident);
     return 1;
   }
   return out;
@@ -290,7 +293,7 @@ char CRTK_motion::send_servo_cr(tf::Transform trans){
 }
 
 void CRTK_motion::reset_servo_cr_updated(){
-  servo_cr_command = tf::Transform(tf::Quaternion(0,0,0,0),tf::Vector3(0,0,0));
+  servo_cr_command = tf::Transform();
   servo_cr_updated = 0;
 }
 
@@ -302,4 +305,8 @@ char CRTK_motion::get_servo_cr_updated(){
 
 tf::Transform CRTK_motion::get_servo_cr_command(){
   return tf::Transform(servo_cr_command);
+}
+
+time_t CRTK_motion::get_start_time(){
+  return motion_start_time;
 }

@@ -70,7 +70,7 @@ public:
   char get_servo_cr_updated();
   tf::Transform get_servo_cr_command();
 
-
+  time_t get_start_time();
 
   char start_motion( time_t curr_time);
 

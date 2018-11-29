@@ -243,10 +243,15 @@ int check_movement_rotation(CRTK_motion* arm, float angle, int check_time, long 
     start_time = current_time;
     start = 0;
     max_angle = 0;
+    ROS_INFO("start == 1");
   }
 
   curr_ori = arm->get_measured_cp().getRotation();
-  curr_angle = 2*curr_ori.angle(start_ori);
+
+  ROS_INFO("start rotation (after): %f, %f, %f, %f",start_pos.getRotation().x(),start_pos.getRotation().y(),start_pos.getRotation().z(),start_pos.getRotation().w());
+  ROS_INFO("curr rotation (after):  %f, %f, %f, %f",curr_ori.x(),curr_ori.y(),curr_ori.z(),curr_ori.w());
+  curr_angle = fabs(2*curr_ori.angle(start_ori));
+  ROS_INFO("angle rotated = %f",curr_angle);
 
   // save maxa distance
   if(fabs(curr_angle)>fabs(max_angle)){
@@ -256,7 +261,7 @@ int check_movement_rotation(CRTK_motion* arm, float angle, int check_time, long 
   static int count = 0;
   count ++;
   if(count%500 == 0){
-    ROS_INFO("curr_angle = %f",curr_angle);
+    ROS_INFO("angle rotated = %f",curr_angle);
     count = 0;
   }
 
