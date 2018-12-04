@@ -68,5 +68,9 @@ int test_2_2(CRTK_robot *, time_t);
 // Pass: ask user!
 int test_2_3(CRTK_robot *, time_t);
 
+// 2-4 Relative (command: servo_cr for grasper) Grasper test
+// (functionality) clapping with grasper for 2 sec (max = 30 deg)
+// Pass: ask user!
+int test_2_4(CRTK_robot *, time_t);
 
 #endif

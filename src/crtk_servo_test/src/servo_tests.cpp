@@ -51,11 +51,11 @@ tf::Vector3 vec_z(0,0,1);
 
 int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;
-  static int current_test = 4;
+  static int current_test = 5;
   static int finished = 0;
   static int errors = 0;
   int test_status;
-  int num_of_tests = 4;
+  int num_of_tests = 5;
 
 
   // wait for crtk state message to be published before testing
@@ -134,6 +134,21 @@ int servo_testing( CRTK_robot* robot, time_t current_time){
       else if (test_status > 0) {
         current_test ++;
         ROS_INFO("test_2_3 passed: %i", test_status);
+      }
+      break;
+    }
+
+    case 5:
+    {
+      test_status = test_2_4(robot, current_time);
+      if (test_status < 0) {
+        errors += 1;
+        current_test ++;
+        ROS_ERROR("test_2_4 fail: %i", test_status);
+      }
+      else if (test_status > 0) {
+        current_test ++;
+        ROS_INFO("test_2_4 passed: %i", test_status);
       }
       break;
     }
@@ -668,7 +683,116 @@ int test_2_3(CRTK_robot * robot, time_t current_time){
   return 0;
 }
 
+// 2-4 Relative (command: servo_cr for grasper) Grasper test
+// (functionality) clapping with grasper for 2 sec (max = 30 deg)
+// Pass: ask user!
+int test_2_4(CRTK_robot * robot, time_t current_time){
+  static int current_step = 1;
+  static int direction = -1;
+  int duration = 1, out = 0;
+  float step_angle = 0.001;
+  std::string start;
 
+  switch(current_step)
+  {
+    case 1:
+    {
+      ROS_INFO("======================= Starting test_2-4 ======================= ");
+      ROS_INFO("Start and home robot if not already.");
+      ROS_INFO("(Press 'Enter' when done.)"); 
+      current_step ++;
+      break;
+    }
+    case 2:
+    {
+      // (2) wait for 'Enter' key press
+      getline(std::cin,start);
+      if(start == ""){
+        current_step ++;
+      }
+      break;
+    }
+    case 3:  
+    {
+      // (3) send resume command to enable robot
+      ROS_INFO("CRTK_RESUME command sent.");
+      ROS_INFO("Waiting for robot to enter CRTK_ENABLED state..."); 
+      CRTK_robot_command command = CRTK_RESUME;
+      robot->state.crtk_command_pb(command); 
+      current_step++;
+      break;
+    }
+    case 4:  case 9:  case 14:  case 19:  case 24:  case 29:
+    {
+      // (4) check if crtk == enabled
+      if (robot->state.get_enabled()){
+        robot->arm[0].start_motion(current_time);
+        robot->arm[1].start_motion(current_time);
+        current_step ++;
+      }
+      break;
+    }
+    case 5:  case 10:   case 15:  case 20:  case 25:  case 30:
+    {
+      // (5) send motion command to move robot (for 1 sec)
+      direction = (current_step % 2 == 0) ? 1:-1;
+      robot->arm[0].send_servo_jr_grasp(direction*step_angle);
+      robot->arm[1].send_servo_jr_grasp(direction*step_angle);
+      if(current_time-robot->arm[0].get_start_time() > duration){
+        robot->arm[0].start_motion(current_time);
+        robot->arm[1].start_motion(current_time);
+        current_step ++;
+        ROS_INFO("moving to step %i",current_step);
+      }
+      break;
+    }
+    case 6:  case 11:   case 16:  case 21: case 26: case 31:  case 8:  case 13:   case 18:  case 23: case 28: case 33:
+    {
+      // (6) send nothing 
+      // (8) send nothing 
+      current_step ++;
+      ROS_INFO("moving to step %i",current_step);
+      break;
+    }
+    case 7:  case 12:   case 17:  case 22: case 27: case 32:
+    {
+      // (7) send motion command to move robot (for 2 secs)
+      robot->arm[0].send_servo_jr_grasp(-direction*step_angle);
+      robot->arm[1].send_servo_jr_grasp(-direction*step_angle);
+      if(current_time-robot->arm[0].get_start_time() > duration){
+        robot->arm[0].start_motion(current_time);
+        robot->arm[1].start_motion(current_time);
+        current_step ++;
+        ROS_INFO("moving to step %i",current_step);
+      }
+      break;
+    }
+    case 34:
+    {
+      ROS_INFO("Did the graspers clap several times for around %i seconds each direction? (Y/N)",duration);
+      current_step++;
+      break;
+    }
+    case 35:
+    {
+      // (8) take user input yes or no
+      getline(std::cin,start);
+      if(start == "Y" || start == "y"){
+        step_success(1, &current_step);
+        return 1;
+      }
+      else if(start == "N" || start == "n"){
+        step_success(-1, &current_step);
+        return -1;
+      }
+      else{
+        current_step --;
+      }
+      break;
+    }
+  }
+  return 0;
+}
 
 /*
 

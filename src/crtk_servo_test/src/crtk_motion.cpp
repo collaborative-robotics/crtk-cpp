@@ -310,3 +310,29 @@ tf::Transform CRTK_motion::get_servo_cr_command(){
 time_t CRTK_motion::get_start_time(){
   return motion_start_time;
 }
+
+char CRTK_motion::send_servo_jr_grasp(float step_angle){
+
+  // ROS_INFO("We're in send_servo_jr_grasp");
+  if(fabs(step_angle) > 1000* STEP_ROT_LIMIT){ //TODO, maybe this isn't such a good idea
+    ROS_ERROR("Servo_jr_grasp step limit exceeded. Motion not sent.");
+    reset_servo_jr_grasp_updated();
+    return -1;
+  }
+  // send command
+  servo_jr_grasp_updated = 1;
+  servo_jr_grasp_command = step_angle;
+
+}
+
+void CRTK_motion::reset_servo_jr_grasp_updated(){
+  servo_jr_grasp_updated = 0;
+}
+
+char CRTK_motion::get_servo_jr_grasp_updated(){
+  return servo_jr_grasp_updated;
+}
+
+float CRTK_motion::get_servo_jr_grasp_command(){
+  return servo_jr_grasp_command;
+}
