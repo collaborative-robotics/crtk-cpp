@@ -209,4 +209,6 @@ set(${PROJECT_NAME}_SOURCES
     src/test_funcs.cpp)
 add_executable(crtk_servo_test ${${PROJECT_NAME}_SOURCES})
 
+add_dependencies(crtk_servo_test ${catkin_EXPORTED_TARGETS})
+
 target_link_libraries(crtk_servo_test ${catkin_LIBRARIES})
