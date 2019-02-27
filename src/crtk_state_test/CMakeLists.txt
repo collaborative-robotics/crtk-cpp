@@ -8,12 +8,12 @@ project(crtk_state_test)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  crtk_msgs
   raven_2
   roscpp
   rospy
   std_msgs
   message_generation
-  crtk_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -69,10 +69,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
+# generate_messages(
+#  DEPENDENCIES
+#  std_msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -131,6 +131,8 @@ include_directories(
 ## either from message generation or dynamic reconfigure
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+#add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
@@ -144,7 +146,7 @@ include_directories(
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -204,6 +206,10 @@ set(${PROJECT_NAME}_SOURCES
     src/crtk_robot_state.cpp
     src/raven.cpp
     src/state_tests.cpp)
+
 add_executable(crtk_state_test ${${PROJECT_NAME}_SOURCES})
+add_dependencies(crtk_servo_test ${catkin_EXPORTED_TARGETS})
+
+#add_dependencies(crtk_state_test crtk_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(crtk_state_test ${catkin_LIBRARIES})

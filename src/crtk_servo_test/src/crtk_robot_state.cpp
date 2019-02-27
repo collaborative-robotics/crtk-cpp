@@ -172,7 +172,7 @@ void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
       ROS_INFO("Sent NULL."); 
       break;
   }
-  msg_command.hdr.stamp = msg_command.hdr.stamp.now();
+  msg_command.header.stamp = msg_command.header.stamp.now();
   pub.publish(msg_command);
   
   // ROS_INFO("pub count = %i \t command: %s.", count, msg_command.data.c_str());
