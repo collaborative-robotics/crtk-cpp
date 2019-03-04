@@ -34,6 +34,11 @@
 #include "ros/ros.h"
 #include <crtk_msgs/robot_state.h>
 #include <crtk_msgs/StringStamped.h>
+
+
+/**
+ * @brief      The states of a CRTK robot
+ */
 enum CRTK_robot_command {CRTK_ENABLE, CRTK_DISABLE, CRTK_PAUSE, CRTK_RESUME, CRTK_UNHOME, CRTK_HOME};
 
 class CRTK_robot_state 

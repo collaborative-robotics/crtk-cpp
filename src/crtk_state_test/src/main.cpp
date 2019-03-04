@@ -37,8 +37,6 @@
 #include <crtk_msgs/robot_state.h>
 #include <crtk_msgs/StringStamped.h>
 #include "crtk_robot_state.h"
-//#include "raven.h"
-#include "main.h"
 #include "state_tests.h"
 #include <sstream>
 #include <ctime>
@@ -48,7 +46,8 @@ using namespace std;
 
 
 /**
- * This tutorial demonstrates simple sending of messages over the ROS system.
+ * The main function creates a robot state and initiates it before running a loop for the
+ * state testing.
  */
 int main(int argc, char **argv)
 {
@@ -62,23 +61,14 @@ int main(int argc, char **argv)
   robot_state.init_ros(n);
 
   int count = 0;
-  ros::Rate loop_rate(10); // \TODO increase to 1000Hz?
+  ros::Rate loop_rate(10); // \TODO increase loop rate?
 
   ROS_INFO("Please launch stand alone roscore.");
   while (ros::ok()){
 
-    // CRTK_robot_command command = CRTK_DISABLE;
-    // if(count == 50){
-    //   robot_state.crtk_command_pb(command);
-    // }
-    // if(count == 150){
-    //   CRTK_robot_command cmd = CRTK_ENABLE;
-    //   robot_state.crtk_command_pb(cmd);
-    //   count = 0;
-    // }
     current_time = time(NULL);
     state_testing(robot_state, current_time);
-     // ROS_INFO("sub count = %i: I heard that the robot is %c.", count, robot_state.state_char());
+
 
     ros::spinOnce();
     loop_rate.sleep();
