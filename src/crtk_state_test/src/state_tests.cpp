@@ -3,7 +3,6 @@
 #include <crtk_msgs/robot_state.h>
 #include <crtk_msgs/StringStamped.h>
 #include "crtk_robot_state.h"
-#include "raven.h"
 #include <sstream>
 #include <ctime>
 #include <iostream>
@@ -11,7 +10,7 @@
 
 using namespace std;
 
-int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time){
+int state_testing(CRTK_robot_state robot_state, time_t current_time){
   static time_t start_time = current_time;
   static int current_test = 0;
   static int finished = 0;
@@ -43,7 +42,7 @@ int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time
     case 1:
     {
       // I.    {disabled, ~homed} + enable [prompt for button press] → {enabled / init}
-      test_status = test_1(raven,robot_state, current_time);
+      test_status = test_1(robot_state, current_time);
       if (test_status < 0) {
         errors += 1;
         current_test ++;
@@ -60,7 +59,7 @@ int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time
     {
         // II.    {disabled, homed} + enable [prompt for button press] → {enabled / p_dn}
         // IV-2.  {enabled, busy} + pause → {paused / p_up}
-        test_status = test_2(raven,robot_state, current_time);
+        test_status = test_2(robot_state, current_time);
         if (test_status < 0) {
           errors += 1;
           current_test ++;
@@ -77,7 +76,7 @@ int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time
     {
         // VI-2.    {paused, p_up} + disable → {disabled / e-stop}
         // VIII-2.    {disabled, homed} + unhome → {disabled, ~homed / e-stop} 
-        test_status = test_3(raven,robot_state, current_time);
+        test_status = test_3(robot_state, current_time);
         if (test_status < 0) {
           errors += 1;
           current_test ++;
@@ -94,7 +93,7 @@ int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time
     {
         // IV-1.    {enabled, homing} + pause → {disabled / e-stop}
         // VIII-1.  {disabled, ~homed} + unhome → {disabled, ~homed / e-stop}
-        test_status = test_4(raven,robot_state, current_time);
+        test_status = test_4(robot_state, current_time);
         if (test_status < 0) {
           errors += 1;
           current_test ++;
@@ -112,7 +111,7 @@ int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time
         // III-1.    {enabled, homing} + disable → {disabled / e-stop}
         // III-2.    {enabled, busy} + disable → {disabled / e-stop}
 
-        test_status = test_5(raven,robot_state, current_time);
+        test_status = test_5(robot_state, current_time);
         if (test_status < 0) {
           errors += 1;
           current_test ++;
@@ -130,7 +129,7 @@ int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time
         // VIII-3.    {enabled, homing} + unhome → {disabled, ~homed / e-stop}
         // VIII-4.    {enabled, busy} + unhome → {disabled, ~homed / e-stop}
 
-        test_status = test_6(raven,robot_state, current_time);
+        test_status = test_6(robot_state, current_time);
         if (test_status < 0) {
           errors += 1;
           current_test ++;
@@ -148,7 +147,7 @@ int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time
     {
         // VIII-6.    {paused, homed} + unhome → {disabled, ~homed / e-stop}
 
-        test_status = test_7(raven,robot_state, current_time);
+        test_status = test_7(robot_state, current_time);
         if (test_status < 0) {
           errors += 1;
           current_test ++;
@@ -166,7 +165,7 @@ int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time
         // V-3.    {disabled, ~homed} + home [prompt for button press] → {enabled, homing / init}
         // V-1.    {enabled, homed} + home [prompt for button press] → {enabled, homing / init}
         // V-2.    {paused, homed} + home [prompt for button press] → {enabled, homing / init}
-        test_status = test_8(raven,robot_state, current_time);
+        test_status = test_8(robot_state, current_time);
         if (test_status < 0) {
           errors += 1;
           current_test ++;
@@ -208,7 +207,7 @@ int state_testing(raven raven, CRTK_robot_state robot_state, time_t current_time
 
 
 // I.    {disabled, ~homed} + enable [prompt for button press] → {enabled / init}
-int test_1(raven raven, CRTK_robot_state robot_state, time_t current_time){
+int test_1(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
 
@@ -281,19 +280,6 @@ int test_1(raven raven, CRTK_robot_state robot_state, time_t current_time){
       break;
     }
 
-    case 7:
-    {
-      // (7) check if raven == init
-      if (raven.get_runlevel() == RL_INIT){
-        current_step ++;
-        return 1; // all steps passed
-      }
-      else{
-        current_step = -100;
-        return -7;
-      }
-      break;
-    }
 
     default:
     {
@@ -307,7 +293,7 @@ int test_1(raven raven, CRTK_robot_state robot_state, time_t current_time){
 
 // II.    {paused, homed} + resume [prompt for button press] → {enabled / p_dn}
 // IV-2.  {enabled, busy} + pause → {paused / p_up} (starting at case 7)
-int test_2(raven raven, CRTK_robot_state robot_state, time_t current_time){
+int test_2(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
   string start = "0";
@@ -319,7 +305,7 @@ int test_2(raven raven, CRTK_robot_state robot_state, time_t current_time){
     {
       if(!start_flag){
         ROS_INFO("======================= Starting test_2 ======================= ");
-        ROS_INFO("Please home Raven and press 'Enter'.");
+        ROS_INFO("Please home Robot and press 'Enter'.");
         start_flag = 1;
       }
       // cin.clear();
@@ -390,58 +376,32 @@ int test_2(raven raven, CRTK_robot_state robot_state, time_t current_time){
 
     case 6:
     {
-      // (6) check if raven == p_dn
-      if (raven.get_runlevel() == RL_PEDAL_DN){
-        current_step ++;
-      }
-      else{
-        current_step = -100;
-        return -6;
-      }
-      break;
-    }
-
-    case 7:
-    {
-      // (7) send pause command
+      // (6) send pause command
       CRTK_robot_command command = CRTK_PAUSE;
       robot_state.crtk_command_pb(command);
       current_step ++;
       break;
     }
 
-    case 8:
+    case 7:
     {
-      // (8) wait for a bit
+      // (7) wait for a bit
       if (current_time - pause_start >= 1){
         current_step ++;
       }
       break;
     }
 
-    case 9:
+    case 8:
     {
-      // (9) check if crtk == paused
+      // (8) check if crtk == paused
       if (robot_state.get_paused()){
-        current_step ++;
-      }
-      else{
-        current_step = -100;
-        return -9;
-      }
-      break;
-    }
-
-    case 10:
-    {
-      // (10) check if raven == p_up
-      if (raven.get_runlevel() == RL_PEDAL_UP){
         current_step ++;
         return 1; // all steps passed
       }
       else{
         current_step = -100;
-        return -10;
+        return -8;
       }
       break;
     }
@@ -459,7 +419,7 @@ int test_2(raven raven, CRTK_robot_state robot_state, time_t current_time){
 
 // VI-2.    {paused, p_up} + disable → {disabled / e-stop}
 // VIII-2.    {disabled, homed} + unhome → {disabled, ~homed / e-stop} (starting at case 8)
-int test_3(raven raven, CRTK_robot_state robot_state, time_t current_time){
+int test_3(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
   string start = "0";
@@ -483,7 +443,7 @@ int test_3(raven raven, CRTK_robot_state robot_state, time_t current_time){
     case 2:
     {
       // (2) check pedal_up
-      if (raven.get_runlevel() == RL_PEDAL_UP){
+      if (1){
         current_step ++;
       }
       else{
@@ -519,7 +479,7 @@ int test_3(raven raven, CRTK_robot_state robot_state, time_t current_time){
         current_step ++;
       }
       else{
-        ROS_INFO("robot state = %c",robot_state.state_char());
+        ROS_INFO("robot state = %c, should be disabled",robot_state.state_char());
         current_step = -100;
         return -5;
       }
@@ -528,8 +488,8 @@ int test_3(raven raven, CRTK_robot_state robot_state, time_t current_time){
 
     case 6:
     {
-      // (6) check if raven == estop
-      if (raven.get_runlevel() == RL_E_STOP){
+      // (6) check if robot == estop
+      if (1){
         current_step ++;
       }
       else{
@@ -572,8 +532,8 @@ int test_3(raven raven, CRTK_robot_state robot_state, time_t current_time){
 
     case 10:
     {
-      // (10) check if raven == unhomed
-      if (!raven.get_robot_homed()){
+      // (10) check if robot == unhomed
+      if (1){
         current_step ++;
       }
       else{
@@ -609,7 +569,7 @@ int test_3(raven raven, CRTK_robot_state robot_state, time_t current_time){
 
 // IV-1.    {enabled, homing} + pause → {disabled / e-stop}
 // VIII-1.  {disabled, ~homed} + unhome → {disabled, ~homed / e-stop}
-int test_4(raven raven, CRTK_robot_state robot_state, time_t current_time){
+int test_4(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
   string start = "0";
@@ -686,7 +646,7 @@ int test_4(raven raven, CRTK_robot_state robot_state, time_t current_time){
     case 7:
     {
       // (7) check estop
-      if (raven.get_runlevel() == RL_E_STOP){
+      if (1){
         current_step ++;
       }
       else{
@@ -740,8 +700,8 @@ int test_4(raven raven, CRTK_robot_state robot_state, time_t current_time){
 
     case 12:
     {
-      // (12) check if raven == unhomed
-      if (!raven.get_robot_homed()){
+      // (12) check if robot == unhomed
+      if (1){
         current_step ++;
       }
       else{
@@ -777,7 +737,7 @@ int test_4(raven raven, CRTK_robot_state robot_state, time_t current_time){
 
 // III-1.    {enabled, homing} + disable → {disabled / e-stop}
 // III-2.    {enabled, busy} + disable → {disabled / e-stop}
-int test_5(raven raven, CRTK_robot_state robot_state, time_t current_time){
+int test_5(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
   string start = "0";
@@ -854,7 +814,7 @@ int test_5(raven raven, CRTK_robot_state robot_state, time_t current_time){
     case 7:
     {
       // (7) check estop
-      if (raven.get_runlevel() == RL_E_STOP){
+      if (1){
         current_step ++;
       }
       else{
@@ -901,7 +861,7 @@ int test_5(raven raven, CRTK_robot_state robot_state, time_t current_time){
 
 // VIII-3.    {enabled, homing} + unhome → {disabled, ~homed / e-stop}
 // VIII-4.    {enabled, busy} + unhome → {disabled, ~homed / e-stop}
-int test_6(raven raven, CRTK_robot_state robot_state, time_t current_time){
+int test_6(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
   string start = "0";
@@ -978,7 +938,7 @@ int test_6(raven raven, CRTK_robot_state robot_state, time_t current_time){
     case 7:
     {
       // (7) check estop
-      if (raven.get_runlevel() == RL_E_STOP){
+      if (1){
         current_step ++;
       }
       else{
@@ -1024,7 +984,7 @@ int test_6(raven raven, CRTK_robot_state robot_state, time_t current_time){
 }
 
 // VIII-6.    {paused, homed} + unhome → {disabled, ~homed / e-stop}
-int test_7(raven raven, CRTK_robot_state robot_state, time_t current_time){
+int test_7(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
   string start = "0";
@@ -1108,7 +1068,7 @@ int test_7(raven raven, CRTK_robot_state robot_state, time_t current_time){
     case 7:
     {
       // (7) check estop
-      if (raven.get_runlevel() == RL_E_STOP){
+      if (1){
         current_step ++;
       }
       else{
@@ -1157,7 +1117,7 @@ int test_7(raven raven, CRTK_robot_state robot_state, time_t current_time){
 // V-3.    {disabled, ~homed} + home [prompt for button press] → {enabled, homing / init}
 // V-2.    {paused, homed} + home [prompt for button press] → {enabled, homing / init}
 // V-1.    {enabled, homed} + home [prompt for button press] → {enabled, homing / init}
-int test_8(raven raven, CRTK_robot_state robot_state, time_t current_time){
+int test_8(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
   string start = "0";
@@ -1231,7 +1191,7 @@ int test_8(raven raven, CRTK_robot_state robot_state, time_t current_time){
     case 6:
     {
       // (6) check init
-      if (raven.get_runlevel() == RL_INIT){
+      if (1){
         current_step ++;
       }
       else{
@@ -1282,7 +1242,7 @@ int test_8(raven raven, CRTK_robot_state robot_state, time_t current_time){
     case 10:
     {
       // (10) check p_up
-      if (raven.get_runlevel() == RL_PEDAL_UP){
+      if (1){
         current_step ++;
       }
       else{
@@ -1353,7 +1313,7 @@ int test_8(raven raven, CRTK_robot_state robot_state, time_t current_time){
     case 16:
     {
       // (16) check init
-      if (raven.get_runlevel() == RL_INIT){
+      if (1){
         current_step ++;
       }
       else{
@@ -1481,7 +1441,7 @@ int test_8(raven raven, CRTK_robot_state robot_state, time_t current_time){
     case 27:
     {
       // (27) check init
-      if (raven.get_runlevel() == RL_INIT){
+      if (1){
         current_step ++;
       }
       else{

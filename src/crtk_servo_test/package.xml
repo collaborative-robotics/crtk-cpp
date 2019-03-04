@@ -69,8 +69,6 @@
 
   <exec_depend>crtk_msgs</exec_depend>  
 
-
-  <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 
 

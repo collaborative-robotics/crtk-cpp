@@ -37,7 +37,7 @@
 #include <crtk_msgs/robot_state.h>
 #include <crtk_msgs/StringStamped.h>
 #include "crtk_robot_state.h"
-#include "raven.h"
+//#include "raven.h"
 #include "main.h"
 #include "state_tests.h"
 #include <sstream>
@@ -55,13 +55,11 @@ int main(int argc, char **argv)
 
   time_t current_time;
   CRTK_robot_state robot_state;
-  raven raven;
 
   ros::init(argc, argv, "crtk_state_test");
   static ros::NodeHandle n;
   
   robot_state.init_ros(n);
-  raven.init_ros(n);
 
   int count = 0;
   ros::Rate loop_rate(10); // \TODO increase to 1000Hz?
@@ -79,7 +77,7 @@ int main(int argc, char **argv)
     //   count = 0;
     // }
     current_time = time(NULL);
-    state_testing(raven, robot_state, current_time);
+    state_testing(robot_state, current_time);
      // ROS_INFO("sub count = %i: I heard that the robot is %c.", count, robot_state.state_char());
 
     ros::spinOnce();

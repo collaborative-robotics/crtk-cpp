@@ -70,11 +70,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  crtk_msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs
+#   crtk_msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -219,7 +219,7 @@ add_executable(crtk_servo_test ${${PROJECT_NAME}_SOURCES})
 
 
 #add_dependencies(crtk_servo_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(crtk_servo_test ${${PROJECT_NAME}_EXPORTED_TARGETS})
+#add_dependencies(crtk_servo_test ${${PROJECT_NAME}_EXPORTED_TARGETS})
 add_dependencies(crtk_servo_test ${catkin_EXPORTED_TARGETS})
 
 

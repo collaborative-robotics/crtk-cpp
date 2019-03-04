@@ -9,7 +9,6 @@ project(crtk_state_test)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   crtk_msgs
-  raven_2
   roscpp
   rospy
   std_msgs
@@ -106,7 +105,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES crtk_state_test
-  CATKIN_DEPENDS raven_2 roscpp rospy std_msgs message_runtime crtk_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime crtk_msgs
 #  DEPENDS system_lib
 )
 
@@ -204,11 +203,10 @@ include_directories(
 set(${PROJECT_NAME}_SOURCES
     src/main.cpp
     src/crtk_robot_state.cpp
-    src/raven.cpp
     src/state_tests.cpp)
 
 add_executable(crtk_state_test ${${PROJECT_NAME}_SOURCES})
-add_dependencies(crtk_servo_test ${catkin_EXPORTED_TARGETS})
+add_dependencies(crtk_state_test ${catkin_EXPORTED_TARGETS})
 
 #add_dependencies(crtk_state_test crtk_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
