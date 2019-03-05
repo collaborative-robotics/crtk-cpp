@@ -9,7 +9,7 @@ project(crtk_servo_test)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   crtk_msgs
-  raven_2
+  
   roscpp
   rospy
   std_msgs
@@ -108,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES crtk_state_test
-  CATKIN_DEPENDS crtk_msgs raven_2 roscpp rospy std_msgs message_runtime 
+  CATKIN_DEPENDS crtk_msgs roscpp rospy std_msgs message_runtime 
 #  DEPENDS system_lib
 )
 
@@ -209,7 +209,6 @@ set(${PROJECT_NAME}_SOURCES
     src/main.cpp
     src/crtk_robot.cpp
     src/crtk_robot_state.cpp
-    src/raven.cpp
     src/servo_tests.cpp
     src/crtk_motion.cpp
     src/test_funcs.cpp)
