@@ -88,7 +88,7 @@ bool CRTK_robot_state::init_ros(ros::NodeHandle n){
  *
  * @param[in]  msg   The message from ROS
  */
-void CRTK_robot_state::crtk_state_cb(crtk_msgs::robot_state msg){
+void CRTK_robot_state::crtk_state_cb(crtk_msgs::operating_state msg){
 
   std::string state = msg.state;
 
@@ -138,32 +138,32 @@ void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
   switch(command)
   {
     case CRTK_ENABLE:
-      msg_command.data = "ENABLE";
+      msg_command.data = "enable";
       ROS_INFO("Sent ENABLE: Please press silver button!"); 
       break;
 
     case CRTK_DISABLE:
-      msg_command.data = "DISABLE";
+      msg_command.data = "disable";
       ROS_INFO("Sent DISABLE."); 
       break;
 
     case CRTK_PAUSE:
-      msg_command.data = "PAUSE";
+      msg_command.data = "pause";
       ROS_INFO("Sent PAUSE."); 
       break;
 
     case CRTK_RESUME:
-      msg_command.data = "RESUME";
+      msg_command.data = "resume";
       ROS_INFO("Sent RESUME."); 
       break;
 
     case CRTK_UNHOME:
-      msg_command.data = "UNHOME";
+      msg_command.data = "unhome";
       ROS_INFO("Sent UNHOME."); 
       break;
 
     case CRTK_HOME:
-      msg_command.data = "HOME";
+      msg_command.data = "home";
       ROS_INFO("Sent HOME."); 
       break;
 

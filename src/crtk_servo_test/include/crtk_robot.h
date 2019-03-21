@@ -36,7 +36,7 @@
 
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/JointState.h>
-#include <crtk_msgs/robot_state.h>
+#include <crtk_msgs/operating_state.h>
 #include "crtk_robot_state.h"
 #include "crtk_motion.h"
 // Max DOF 

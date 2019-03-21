@@ -37,7 +37,7 @@
 #include <ctime>
 #include "ros/ros.h"
 #include "tf/tf.h"
-#include <crtk_msgs/robot_state.h>
+#include <crtk_msgs/operating_state.h>
 
 // extern const int MAX_JOINTS;
 
