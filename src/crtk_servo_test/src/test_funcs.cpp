@@ -92,7 +92,7 @@ int check_joint_motion_and_vel(CRTK_robot* robot, float pos_thresh, float vel_th
   }
 
  static int count = 0;
-  if(count % 25 == 0){
+  if(count % 1500 == 0){
     ROS_INFO("(pos1 done)-- %i, %i, %i, %i, %i, %i, %i", pos1_done[0],pos1_done[1],pos1_done[2], pos1_done[3],pos1_done[4],pos1_done[5],pos1_done[6]);
     ROS_INFO("(pos2 done)-- %i, %i, %i, %i, %i, %i, %i", pos2_done[0],pos2_done[1],pos2_done[2], pos2_done[3],pos2_done[4],pos2_done[5],pos2_done[6]);
     ROS_INFO("(vel1 done)-- %i, %i, %i, %i, %i, %i, %i", vel1_done[0],vel1_done[1],vel1_done[2], vel1_done[3],vel1_done[4],vel1_done[5],vel1_done[6]);

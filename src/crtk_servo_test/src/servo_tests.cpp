@@ -36,7 +36,6 @@
 #include <crtk_msgs/robot_state.h>
 #include <crtk_msgs/StringStamped.h>
 #include "crtk_robot_state.h"
-//#include "raven.h"
 #include <sstream>
 #include <ctime>
 #include <iostream>
@@ -51,7 +50,7 @@ tf::Vector3 vec_z(0,0,1);
 
 int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;
-  static int current_test = 5;
+  static int current_test = 3;
   static int finished = 0;
   static int errors = 0;
   int test_status;

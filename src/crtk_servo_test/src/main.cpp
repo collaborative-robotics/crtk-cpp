@@ -41,7 +41,6 @@
 #include <crtk_msgs/StringStamped.h>
 #include "crtk_robot_state.h"
 #include "crtk_motion.h"
-
 #include "main.h"
 #include "servo_tests.h"
 #include <sstream>

@@ -9,7 +9,6 @@ project(crtk_servo_test)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   crtk_msgs
-  
   roscpp
   rospy
   std_msgs
