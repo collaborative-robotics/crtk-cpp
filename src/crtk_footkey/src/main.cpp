@@ -24,7 +24,7 @@
  * \brief Class file for CRTK API state and status flags
  *
  *
- * \date Oct 18, 2018
+ * \date April 11, 2019
  * \author Andrew Lewis
  * \author Melody Yun-Hsuan Su
  *
@@ -35,16 +35,11 @@
 
 
 
-//#include "crtk_robot.h"
+
 #include "ros/ros.h"
-//#include <crtk_msgs/operating_state.h>
 #include <crtk_msgs/StringStamped.h>
-//#include "crtk_robot_state.h"
-//#include "crtk_motion.h"
 #include "main.h"
-//#include "servo_tests.h"
 #include <sstream>
-//#include <ctime>
 #include <iostream>
 #include <string>
 using namespace std;
@@ -61,7 +56,7 @@ ros::Publisher command_pub;
 int main(int argc, char **argv)
 {
 
-  //time_t current_time;
+
   //start ros node
   ros::init(argc, argv, "crtk_foot_pedal_keyboard");
   static ros::NodeHandle n; 
@@ -78,7 +73,7 @@ int main(int argc, char **argv)
 
   ROS_INFO("Please launch stand alone roscore.");
   while (ros::ok()){
-    //current_time = time(NULL);
+
     //check keyboard
     foot = foot_pedal();
     //pub if foot up or down
