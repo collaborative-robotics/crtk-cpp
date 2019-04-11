@@ -61,7 +61,7 @@ CRTK_robot_state::CRTK_robot_state(){
  */
 bool CRTK_robot_state::init_ros(ros::NodeHandle n){
 
-  pub = n.advertise<crtk_msgs::StringStamped>("crtk_command", 1);
+  pub = n.advertise<crtk_msgs::StringStamped>("state_command", 1);
   sub = n.subscribe("crtk_state", 1, &CRTK_robot_state::crtk_state_cb,this);
 
   return true;
@@ -125,7 +125,7 @@ void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
   {
     case CRTK_ENABLE:
       msg_command.data = "enable";
-      ROS_INFO("Sent ENABLE: Please press silver button!"); 
+      ROS_INFO("Sent ENABLE: May need to press start button!"); 
       break;
 
     case CRTK_DISABLE:

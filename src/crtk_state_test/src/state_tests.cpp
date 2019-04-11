@@ -274,7 +274,7 @@ int test_1(CRTK_robot_state robot_state, time_t current_time){
     case 4:
     {
       // (4) prompt button press
-      // ROS_INFO("test_1 (step 4): Please press silver button!");
+      ROS_INFO("Robot should be enabled within 10 secs!");
       pause_start = current_time;
       current_step ++;
       break;
@@ -283,7 +283,7 @@ int test_1(CRTK_robot_state robot_state, time_t current_time){
     case 5:
     {
       // (5) wait for a bit
-      if (current_time - pause_start >= 6){
+      if (current_time - pause_start >= 10){
         current_step ++;
       }
       break;
@@ -294,6 +294,7 @@ int test_1(CRTK_robot_state robot_state, time_t current_time){
       // (6) check if crtk == enabled
       if (robot_state.get_enabled()){
         current_step ++;
+        return 1;
       }
       else{
         current_step = -100;
@@ -645,7 +646,6 @@ int test_4(CRTK_robot_state robot_state, time_t current_time){
       // (2) wait for initialization
       CRTK_robot_command command = CRTK_ENABLE;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Now press the silver button to initialize.");
       current_step ++;
       pause_start = current_time;
       break;
@@ -813,7 +813,7 @@ int test_5(CRTK_robot_state robot_state, time_t current_time){
       getline(std::cin,start);
       if(start == ""){
         current_step ++;
-      }
+      } 
       break;
     }
     case 2:
@@ -821,7 +821,6 @@ int test_5(CRTK_robot_state robot_state, time_t current_time){
       // (2) wait for initialization
       CRTK_robot_command command = CRTK_ENABLE;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Now press the silver button to initialize.");
       current_step ++;
       pause_start = current_time;
       break;
@@ -954,7 +953,6 @@ int test_6(CRTK_robot_state robot_state, time_t current_time){
       // (2) wait for initialization
       CRTK_robot_command command = CRTK_ENABLE;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Now press the silver button to initialize.");
       current_step ++;
       pause_start = current_time;
       break;
@@ -1085,7 +1083,6 @@ int test_7(CRTK_robot_state robot_state, time_t current_time){
       // (2) wait for initialization
       CRTK_robot_command command = CRTK_ENABLE;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Now press the silver button to initialize.");
       current_step ++;
       pause_start = current_time;
       break;
@@ -1240,7 +1237,7 @@ int test_8(CRTK_robot_state robot_state, time_t current_time){
       // (3) send home command
       CRTK_robot_command command = CRTK_HOME;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Press and release E-stop. Then press the silver button.");
+      ROS_INFO("Press and release E-stop. Then re-enable!");
       current_step ++;
       pause_start = current_time;
       break;
@@ -1362,7 +1359,7 @@ int test_8(CRTK_robot_state robot_state, time_t current_time){
       // (13) send home command
       CRTK_robot_command command = CRTK_HOME;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Press and release E-stop. Then press the silver button.");
+      ROS_INFO("Press and release E-stop. Then re-enable!");
       current_step ++;
       pause_start = current_time;
       break;
@@ -1490,7 +1487,7 @@ int test_8(CRTK_robot_state robot_state, time_t current_time){
       // (24) send home command
       CRTK_robot_command command = CRTK_HOME;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Press and release E-stop. Then press the silver button.");
+      ROS_INFO("Press and release E-stop. Then re-enable!");
       current_step ++;
       pause_start = current_time;
       break;

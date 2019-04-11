@@ -455,6 +455,7 @@ int test_2_2(CRTK_robot *robot, time_t current_time){
       ROS_INFO("======================= Starting test_2-2 ======================= ");
       ROS_INFO("Start and home robot if not already.");
       ROS_INFO("(Press 'Enter' when done.)"); 
+      ROS_INFO("In this test, the arms should randomly trace a cube.");
       current_step ++;
       break;
     }
@@ -579,6 +580,7 @@ int test_2_3(CRTK_robot * robot, time_t current_time){
       ROS_INFO("======================= Starting test_2-3 ======================= ");
       ROS_INFO("Start and home robot if not already.");
       ROS_INFO("(Press 'Enter' when done.)"); 
+      ROS_INFO("In this test, the arms should subsequently rotate around X,Y,Z axes for %i secs each.",duration);
       current_step ++;
       break;
     }
@@ -689,7 +691,7 @@ int test_2_4(CRTK_robot * robot, time_t current_time){
   static int current_step = 1;
   static int direction = -1;
   int duration = 1, out = 0;
-  float step_angle = 0.001;
+  float step_angle = 0.0005;
   std::string start;
 
   switch(current_step)
@@ -699,6 +701,7 @@ int test_2_4(CRTK_robot * robot, time_t current_time){
       ROS_INFO("======================= Starting test_2-4 ======================= ");
       ROS_INFO("Start and home robot if not already.");
       ROS_INFO("(Press 'Enter' when done.)"); 
+      ROS_INFO("In this test, the graspers should clap several times for around %i seconds each direction.",duration);
       current_step ++;
       break;
     }
