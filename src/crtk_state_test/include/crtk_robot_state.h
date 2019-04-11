@@ -32,7 +32,7 @@
 #ifndef CRTK_ROBOT_STATE_H_
 #define CRTK_ROBOT_STATE_H_
 #include "ros/ros.h"
-#include <crtk_msgs/robot_state.h>
+#include <crtk_msgs/operating_state.h>
 #include <crtk_msgs/StringStamped.h>
 
 
@@ -74,7 +74,7 @@ class CRTK_robot_state
   char set_connected(char);
 
   bool init_ros(ros::NodeHandle);
-  void crtk_state_cb(crtk_msgs::robot_state msg);
+  void crtk_state_cb(crtk_msgs::operating_state msg);
   void crtk_command_pb(CRTK_robot_command);
 
   char state_char();

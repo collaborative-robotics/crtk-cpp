@@ -1,6 +1,6 @@
 #include "state_tests.h"
 #include "ros/ros.h"
-#include <crtk_msgs/robot_state.h>
+#include <crtk_msgs/operating_state.h>
 #include <crtk_msgs/StringStamped.h>
 #include "crtk_robot_state.h"
 #include <sstream>
