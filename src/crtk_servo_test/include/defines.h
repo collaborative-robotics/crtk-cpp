@@ -34,7 +34,7 @@
 #include "tf/tf.h"
 #include <cmath> 
 #define MM_TO_M   * 0.001
-#define LOOP_RATE 1000          // Hz (TODO increase to 1000Hz?)
+#define LOOP_RATE 1100          // Hz (TODO increase to 1000Hz? NOOOOOOO! will fail for _cp)
 
 
 #define MAX_JOINTS 7

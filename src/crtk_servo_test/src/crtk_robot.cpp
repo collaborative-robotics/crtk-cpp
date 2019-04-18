@@ -44,6 +44,8 @@ bool CRTK_robot::init_ros(ros::NodeHandle n){
   sub_measured_js2 = n.subscribe("arm2/measured_js", 1, &CRTK_robot::crtk_measured_js_arm2_cb,this);
   pub_servo_cr1 = n.advertise<geometry_msgs::TransformStamped>("arm1/servo_cr", 1);
   pub_servo_cr2 = n.advertise<geometry_msgs::TransformStamped>("arm2/servo_cr", 1);
+  pub_servo_cp1 = n.advertise<geometry_msgs::TransformStamped>("arm1/servo_cp", 1);
+  pub_servo_cp2 = n.advertise<geometry_msgs::TransformStamped>("arm2/servo_cp", 1);
   pub_servo_jr_grasp1 = n.advertise<sensor_msgs::JointState>("grasp1/servo_jr", 1);
   pub_servo_jr_grasp2 = n.advertise<sensor_msgs::JointState>("grasp2/servo_jr", 1);
   return true;
@@ -119,7 +121,11 @@ void CRTK_robot::check_motion_commands_to_publish(){
       publish_servo_cr(i);
     }  
 
-    if(arm[i].get_servo_jr_grasp_updated()){
+    else if(arm[i].get_servo_cp_updated()){ // TODO: add more stuff 
+      publish_servo_cp(i);
+    }  
+
+    else if(arm[i].get_servo_jr_grasp_updated()){
       // ROS_INFO("Trying to publish");
       publish_servo_jr_grasp(i);
     }
@@ -152,6 +158,28 @@ void CRTK_robot::publish_servo_cr(char i){
   } 
 }
 
+
+void CRTK_robot::publish_servo_cp(char i){
+  geometry_msgs::TransformStamped msg;
+
+  if(i != 0 && i != 1){
+    ROS_ERROR("Invalid arm type for servo command.");
+  }
+
+  msg.header.stamp = msg.header.stamp.now();
+  tf::Transform cmd = arm[i].get_servo_cp_command(); 
+  tf::transformTFToMsg(cmd,msg.transform);
+
+
+  if(i == 0) {
+    pub_servo_cp1.publish(msg);
+    arm[i].reset_servo_cp_updated();
+  }
+  else if(i == 1){
+    pub_servo_cp2.publish(msg);
+    arm[i].reset_servo_cp_updated();
+  } 
+}
 
 void CRTK_robot::publish_servo_jr_grasp(char i){
   sensor_msgs::JointState msg;

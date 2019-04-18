@@ -50,16 +50,16 @@ tf::Vector3 vec_z(0,0,1);
 
 int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;
-  static int current_test = 3;
+  static int current_test = 0;
   static int finished = 0;
   static int errors = 0;
   int test_status;
-  int num_of_tests = 5;
+  int num_of_tests = 6;
 
 
   // wait for crtk state message to be published before testing
   if (current_test == 0 && robot->state.get_connected() == 1) {
-    current_test = 1;
+    current_test = 6;
   }
 
   // wait for a beat
@@ -151,7 +151,20 @@ int servo_testing( CRTK_robot* robot, time_t current_time){
       }
       break;
     }
-
+    case 6:
+    {
+      test_status = test_3_1(robot, current_time);
+      if (test_status < 0) {
+        errors += 1;
+        current_test ++;
+        ROS_ERROR("test_3_1 fail: %i", test_status);
+      }
+      else if (test_status > 0) {
+        current_test ++;
+        ROS_INFO("test_3_1 passed: %i", test_status);
+      }
+      break;
+    }
     default:
     {
       if (finished == 0 && errors != 0){
@@ -796,3 +809,129 @@ int test_2_4(CRTK_robot * robot, time_t current_time){
   return 0;
 }
 
+
+// 3-1 Absolute (command: servo_cp) Axis motion Test
+// (functionality) move along X axis for 2 cm (both arms)
+//    Pass: Check raven state
+// (functionality) move along Y axis for 2 cm (both arms)
+//    Pass: Check raven state
+// (functionality) move along Z axis for 2 cm (both arms)
+//    Pass: Check raven state
+int test_3_1(CRTK_robot *robot, time_t current_time){
+  static int current_step = 1;
+  static time_t pause_start;
+  int out = 0;
+  std::string start, s1,s2;
+  float pos_thresh = 10 DEG_TO_RAD;
+  float vel_thresh = 10 DEG_TO_RAD;
+  float dist = 0.035; // 20 mm total
+  float completion_percentage_thres = 0.85;  // 0.95;
+  static tf::Transform start_pos;
+
+  switch(current_step)
+  {
+    case 1:
+    {
+      ROS_INFO("======================= Starting test_3-1 ======================= ");
+      ROS_INFO("Start and home robot if not already.");
+      ROS_INFO("(Press 'Enter' when done.)"); 
+      current_step ++;
+      break;
+    }
+    case 2:
+    {
+      // (2) wait for 'Enter' key press
+      getline(std::cin,start);
+      if(start == ""){
+        current_step ++;
+      }
+      break;
+    }
+    case 3:    case 9:    case 15:    case 21:
+    {
+      static int started  = 0;
+      if(!started){
+      // (3) send resume command to enable robot
+        ROS_INFO("CRTK_RESUME command sent.");
+        ROS_INFO("Waiting for robot to enter CRTK_ENABLED state..."); 
+        CRTK_robot_command command = CRTK_RESUME;
+        robot->state.crtk_command_pb(command); 
+        pause_start = current_time;
+        started = 1;
+      }
+      else if(current_time - pause_start > 2){
+        started = 0;
+        current_step++;
+      }
+      break;
+    }
+    case 4:    case 10:    case 16:   case 22:
+    {
+      // (4) check if crtk == enabled
+      if (robot->state.get_enabled()){
+        s1 = (current_step == 4 || current_step == 10) ? "left" : "right";
+        s2 = (current_step == 4 || current_step == 16) ? "-Z"    : "X";
+        int curr_arm = (current_step == 4 || current_step == 10) ? 0 : 1;
+        ROS_INFO("Moving %s arm along %s for 2 cm ...",s1.c_str(),s2.c_str()); 
+        start_pos = robot->arm[curr_arm].get_measured_cp();
+        robot->arm[curr_arm].start_motion(current_time);
+        ROS_INFO("Start moving robot!");
+        current_step ++;
+      }
+      break;
+    }
+    case 5:    case 11:    case 17:   case 23:
+    {
+      // (5) send motion command to move robot (for 2 secs)
+      int curr_arm = (current_step == 5 || current_step == 11) ? 0 : 1;
+      tf::Vector3 move_vec = (current_step == 5 || current_step == 17) ? -vec_z : vec_x;
+      out = robot->arm[curr_arm].send_servo_cp_distance(move_vec,dist,current_time);
+      out = step_success(out, &current_step);
+      break;
+    }
+    case 6:    case 12:    case 18:   case 24:
+    {
+      // (6) check if it moved in the correct direction (msg)
+      int curr_arm = (current_step == 6 || current_step == 12) ? 0 : 1;
+      CRTK_axis curr_axis = (current_step == 6 || current_step == 18) ? CRTK_Z : CRTK_X;
+      float curr_sign = (current_step == 6 || current_step == 18) ? -1.0 : 1.0;
+      float check_thres = curr_sign * dist * completion_percentage_thres;
+      out = check_movement_distance(&robot->arm[curr_arm], start_pos, curr_axis,check_thres);
+      out = step_success(out, &current_step);
+      break;
+    }
+    case 7:    case 13:    case 19:   case 25:
+    {
+      // (7) ask human if it moved (back)?
+      // CRTK_robot_command command = CRTK_PAUSE;
+      // robot->state.crtk_command_pb(command); 
+      if(current_step == 7 || current_step == 19)
+        ROS_INFO("Did the robot move down toward the table? (Y/N)");
+      else
+        ROS_INFO("Did the robot move away along the table plane? (Y/N)");
+      current_step++;
+      break;
+    }
+    case 8:    case 14:    case 20:    case 26:
+    {
+      // (8) take user input yes or no
+      getline(std::cin,start);
+      if(start == "Y" || start == "y"){
+        out = 1;
+        out = step_success(out, &current_step);
+      }
+      else if(start == "N" || start == "n"){
+        out = -1;
+        out = step_success(out, &current_step);
+      }
+      else{
+        current_step --;
+      }
+      if(current_step == 27 && out == 1)
+        return 1; // at the end of test 2
+      break;
+    }
+  }
+  if(out < 0) return out;
+  return 0;
+}

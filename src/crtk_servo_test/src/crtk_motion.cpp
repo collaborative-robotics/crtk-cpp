@@ -179,10 +179,13 @@ int CRTK_motion::set_measured_js_eff(float js_value[MAX_JOINTS], int length){
  */
 char CRTK_motion::start_motion( time_t curr_time){
   motion_start_time = curr_time;
+  motion_start_tf = get_measured_cp();
 }
 
+
+
 /**
- * @brief      Sends a servo carriage return time. (Must call start_motion function first)
+ * @brief      Sends a servo_cr time. (Must call start_motion function first)
  *
  * @param[in]  vec         The vector
  * @param[in]  total_dist  The total distance
@@ -225,6 +228,81 @@ char CRTK_motion::send_servo_cr_time(tf::Vector3 vec, float total_dist, float du
     // out = send_servo_cr(ident);
     return 1;
   }
+  return out;
+}  
+
+/**
+ * @brief      Sends a servo_cp distance. (Must call start_motion function first)
+ * 
+ * minimum of 1 sec movements
+ *
+ * @param[in]  vec         The vector
+ * @param[in]  total_dist  The total distance
+ * @param[in]  duration    The duration
+ * @param[in]  curr_time   The curr time
+ *
+ * @return     { description_of_the_return_value }
+ */
+char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time_t curr_time){
+  // static char start = 1;
+  char out=0;
+  
+  float safe_speed = 0.02; // m/s
+  //figure out total duration with ramp up and ramp down as 1/4 of movement each
+  float duration_loops = total_dist/(.75 * safe_speed/LOOP_RATE);
+  float step = safe_speed/LOOP_RATE;
+  float scale;
+
+  int ramp_loops = duration_loops/4;
+
+
+  static int loop_count = 0;
+  
+  // check time
+  if(loop_count > duration_loops) {
+    ROS_INFO("%f sec movement complete.",duration_loops/LOOP_RATE);
+    loop_count = 0;  
+    return 1;
+  }
+    
+  loop_count++;
+
+  if(loop_count <= duration_loops/2){
+    scale = std::min((double)loop_count/(double)ramp_loops, (double)1);
+  } else{
+    scale = 1;
+    //scale = std::min((double)(-loop_count+duration_loops)/(double)ramp_loops, (double)1);
+  }
+
+  if(scale <= 0) ROS_ERROR("Negative scaling factor of %f OMGWTFBBQsemicolon", scale);
+
+  if(duration_loops <= 0 || total_dist <= 0){
+    ROS_ERROR("Duration and distance should be positive.");
+    return -1;    
+  }
+
+  // check command
+  if(step > 0.001){
+    ROS_ERROR("Step size is too big.");
+    return -1;
+  }  
+  if(!vec.normalized()){
+    vec = vec.normalize();
+    ROS_INFO("Servo_cp direction not normalized. (set to normalized)");
+  }
+
+  // send command
+  tf::Transform tf_out = tf::Transform();
+  tf::Transform curr_pos = get_measured_cp();
+
+  tf_out = curr_pos;
+  tf_out.setRotation(tf_out.getRotation());
+  tf_out.setOrigin(motion_start_tf.getOrigin()+vec*(step*loop_count*scale));
+  out = send_servo_cp(tf_out);
+
+  
+
+  
   return out;
 }  
 
@@ -276,6 +354,8 @@ char CRTK_motion::send_servo_cr_rot_time(tf::Vector3 vec, float total_angle, flo
   return out;
 }  
 
+//_cr
+
 char CRTK_motion::send_servo_cr(tf::Transform trans){
   // check command
   tf::Vector3 vec = trans.getOrigin();
@@ -307,9 +387,41 @@ tf::Transform CRTK_motion::get_servo_cr_command(){
   return tf::Transform(servo_cr_command);
 }
 
+//_cp
+
+char CRTK_motion::send_servo_cp(tf::Transform trans){
+
+  // send command
+  servo_cp_updated = 1;
+  servo_cp_command = trans;
+
+  return 0;
+}
+
+void CRTK_motion::reset_servo_cp_updated(){
+  servo_cp_command = tf::Transform();
+  servo_cp_updated = 0;
+}
+
+char CRTK_motion::get_servo_cp_updated(){
+  // servo_cp_updated = 1;
+  // ROS_INFO("get says: %i", servo_cp_updated);
+  return servo_cp_updated;
+}
+
+tf::Transform CRTK_motion::get_servo_cp_command(){
+  return tf::Transform(servo_cp_command);
+}
+
+
 time_t CRTK_motion::get_start_time(){
   return motion_start_time;
 }
+
+tf::Transform CRTK_motion::get_start_tf(){
+  return motion_start_tf;
+}
+
 
 char CRTK_motion::send_servo_jr_grasp(float step_angle){
 

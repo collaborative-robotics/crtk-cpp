@@ -60,6 +60,7 @@ class CRTK_robot{
 
     void check_motion_commands_to_publish();
     void publish_servo_cr(char);
+    void publish_servo_cp(char);
     void publish_servo_jr_grasp(char);
     void run();
   private:
@@ -70,6 +71,8 @@ class CRTK_robot{
 
     ros::Publisher pub_servo_cr1;
     ros::Publisher pub_servo_cr2; 
+    ros::Publisher pub_servo_cp1;
+    ros::Publisher pub_servo_cp2; 
     ros::Publisher pub_servo_jr_grasp1;
     ros::Publisher pub_servo_jr_grasp2; 
 };
