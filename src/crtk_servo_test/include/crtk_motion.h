@@ -66,6 +66,7 @@ public:
   char send_servo_cr_time(tf::Vector3,float,float,time_t);
   char send_servo_cp_distance(tf::Vector3,float,time_t);
   char send_servo_cr_rot_time(tf::Vector3,float,float,time_t);
+  char send_servo_cp_rot_angle(tf::Vector3,float,time_t);
   char send_servo_cr(tf::Transform);
   char send_servo_cp(tf::Transform);
   char send_servo_jr_grasp(float);

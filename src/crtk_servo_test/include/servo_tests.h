@@ -75,10 +75,15 @@ int test_2_4(CRTK_robot *, time_t);
 
 // 3-1 Absolute (command: servo_cp) Axis motion Test
 // (functionality) move along X axis for 2 cm (both arms)
-// 		Pass: Check raven state
-// (functionality) move along Y axis for 2 cm (both arms)
-// 		Pass: Check raven state
+// 		Pass: Ask user
 // (functionality) move along Z axis for 2 cm (both arms)
-// 		Pass: Check raven state
+// 		Pass: Ask user
 int test_3_1(CRTK_robot *, time_t);
+
+// 3-2 Absolute (command: servo_cp) Axis rotation Test
+// (functionality) rotate along X axis for 45 degrees (both arms)
+//    Pass: Ask user
+// (functionality) rotate along Z axis for 45 degrees (both arms)
+//    Pass: Ask user
+int test_3_2(CRTK_robot *, time_t);
 #endif

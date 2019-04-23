@@ -307,7 +307,7 @@ char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time
 }  
 
 /**
- * @brief      Sends a servo carriage return time. (Must call start_motion
+ * @brief      Sends a servo_cr increment for a given time. (Must call start_motion
  *             function first)
  *
  * @param[in]  vec          The rotation vector
@@ -351,6 +351,57 @@ char CRTK_motion::send_servo_cr_rot_time(tf::Vector3 vec, float total_angle, flo
     // out = send_servo_cr(ident);
     return 1;
   }
+  return out;
+}  
+
+/**
+ * @brief      Sends a servo_cp rotation over a given distance. (Must call start_motion
+ *             function first)
+ *
+ * @param[in]  vec          The rotation vector
+ * @param[in]  total_angle  The total angle (radian)
+ * @param[in]  duration     The duration
+ * @param[in]  curr_time    The curr time
+ *
+ * @return     { description_of_the_return_value }
+ */
+char CRTK_motion::send_servo_cp_rot_angle(tf::Vector3 vec, float total_angle, time_t curr_time){
+  // static char start = 1;
+  char out=0;
+  float max_omega = 15 DEG_TO_RAD; //per second 
+  float step = max_omega/LOOP_RATE;
+  static int loop_count = 0;
+  int loop_duration = total_angle / step;
+  
+  // check time 
+  if(loop_count >= loop_duration){
+    ROS_INFO("%f sec rotation movement complete", (float)loop_duration/LOOP_RATE);
+    loop_count = 0;
+    return 1;
+  }
+  loop_count++;
+
+  if(step > max_omega/LOOP_RATE){
+    ROS_ERROR("Step size is too big.");
+    return -1;
+  }
+
+  // send command
+  if(!vec.normalized()){
+    vec = vec.normalize();
+    ROS_INFO("Servo_cp rot direction not normalized. (set to normalized)");
+  }
+
+  //get current pose
+  tf::Quaternion start_rot = motion_start_tf.getRotation();
+  tf::Vector3 curr_pos = motion_start_tf.getOrigin();
+
+  // add (by multiplication) current pose and increment quaternion
+  float out_angle = step * loop_count;
+  tf::Quaternion out_qua = start_rot * tf::Quaternion(vec, out_angle);
+  
+  out = send_servo_cp(tf::Transform(out_qua, curr_pos));
+
   return out;
 }  
 
