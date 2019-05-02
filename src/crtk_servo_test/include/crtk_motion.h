@@ -67,23 +67,41 @@ public:
   char send_servo_cp_distance(tf::Vector3,float,time_t);
   char send_servo_cr_rot_time(tf::Vector3,float,float,time_t);
   char send_servo_cp_rot_angle(tf::Vector3,float,time_t);
+
   char send_servo_cr(tf::Transform);
   char send_servo_cp(tf::Transform);
+  char send_servo_jr(float*);
+  char send_servo_jp(float*);
   char send_servo_jr_grasp(float);
+
   void reset_servo_cr_updated();
   void reset_servo_cp_updated();
+  void reset_servo_jr_updated();
+  void reset_servo_jp_updated();
   void reset_servo_jr_grasp_updated();
+
+  char get_servo_jr_updated();
+  char get_servo_jp_updated();
   char get_servo_jr_grasp_updated();
   char get_servo_cr_updated();
   char get_servo_cp_updated();
+
   tf::Transform get_servo_cr_command();
   tf::Transform get_servo_cp_command();
+  void get_servo_jr_command(float*, int);
+  void get_servo_jp_command(float*, int);
   float get_servo_jr_grasp_command();
 
   time_t get_start_time();
   tf::Transform get_start_tf();
 
   char start_motion( time_t curr_time);
+
+  char set_home_pos(tf::Quaternion, tf::Vector3);
+  tf::Transform get_home_pos();
+
+  char go_to_pos(tf::Transform, time_t);
+  char go_to_jpos(float, time_t);
 
 private:
   tf::Transform measured_cp;
@@ -98,12 +116,20 @@ private:
   tf::Transform servo_cr_command;
   tf::Transform servo_cp_command;
   float servo_jr_grasp_command;
+  float servo_jr_command[MAX_JOINTS];
+  float servo_jp_command[MAX_JOINTS];
+
   char servo_cr_updated;
   char servo_cp_updated;
+  char servo_jr_updated;
+  char servo_jp_updated;
   char servo_jr_grasp_updated;
 
   time_t motion_start_time;
   tf::Transform motion_start_tf;
+  float motion_start_js_pos[MAX_JOINTS];
+
+  tf::Transform home_pos;
 };
 
 #endif

@@ -34,6 +34,10 @@
 
 CRTK_motion::CRTK_motion(){
   servo_cr_updated = 0;
+  servo_cp_updated = 0;
+  servo_jr_updated = 0;
+  servo_jp_updated = 0;
+  servo_jr_grasp_updated = 0;
 }
 
 tf::Transform CRTK_motion::get_measured_cp(){
@@ -180,6 +184,7 @@ int CRTK_motion::set_measured_js_eff(float js_value[MAX_JOINTS], int length){
 char CRTK_motion::start_motion( time_t curr_time){
   motion_start_time = curr_time;
   motion_start_tf = get_measured_cp();
+  get_measured_js_pos(motion_start_js_pos,MAX_JOINTS);
 }
 
 
@@ -247,9 +252,9 @@ char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time
   // static char start = 1;
   char out=0;
   
-  float safe_speed = 0.02; // m/s
+  float safe_speed = 0.025; // m/s
   //figure out total duration with ramp up and ramp down as 1/4 of movement each
-  float duration_loops = total_dist/(.75 * safe_speed/LOOP_RATE);
+  float duration_loops = total_dist/(.875 * safe_speed/LOOP_RATE);
   float step = safe_speed/LOOP_RATE;
   float scale;
 
@@ -267,6 +272,7 @@ char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time
     
   loop_count++;
 
+  //determine ramp-up scale for this loop
   if(loop_count <= duration_loops/2){
     scale = std::min((double)loop_count/(double)ramp_loops, (double)1);
   } else{
@@ -276,7 +282,7 @@ char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time
 
   if(scale <= 0) ROS_ERROR("Negative scaling factor of %f OMGWTFBBQsemicolon", scale);
 
-  if(duration_loops <= 0 || total_dist <= 0){
+  if(total_dist <= 0){
     ROS_ERROR("Duration and distance should be positive.");
     return -1;    
   }
@@ -296,7 +302,7 @@ char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time
   tf::Transform curr_pos = get_measured_cp();
 
   tf_out = curr_pos;
-  tf_out.setRotation(tf_out.getRotation());
+  tf_out.setRotation(motion_start_tf.getRotation());
   tf_out.setOrigin(motion_start_tf.getOrigin()+vec*(step*loop_count*scale));
   out = send_servo_cp(tf_out);
 
@@ -304,7 +310,156 @@ char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time
 
   
   return out;
-}  
+}
+
+
+/**
+ * @brief      goes to desired position and orientation
+ *
+ * @param[in]  end        The desired endpoint
+ * @param[in]  curr_time  The curr time
+ *
+ * @return     { description_of_the_return_value }
+ */
+char CRTK_motion::go_to_pos(tf::Transform end, time_t curr_time){
+  static int loop_count = 0;
+  int out = 0;
+
+  float safe_speed = 0.015; // m/s
+  float max_omega = 15 DEG_TO_RAD; //per second 
+  //figure out total duration with ramp up and ramp down as 1/4 of movement each
+  float cart_loops, rot_loops, duration_loops;
+  float cart_step, rot_step;
+  float scale;
+  float rot_diff, cart_diff;
+  int ramp_loops;
+  
+
+  //determine cartesian diff and rotation diff
+  cart_diff =  (end.getOrigin() - motion_start_tf.getOrigin()).length();
+  rot_diff = motion_start_tf.getRotation().angleShortestPath(end.getRotation());
+
+  //determine max steps needed and corresponding steps for sync'ed finish
+  cart_loops = cart_diff/(.875 * safe_speed/LOOP_RATE); //.875
+  rot_loops = rot_diff/(.875 * max_omega/LOOP_RATE); //.875
+
+  duration_loops = std::max((double)cart_loops, (double)rot_loops);
+  cart_step = cart_diff/duration_loops;
+  rot_step = rot_diff / duration_loops;
+
+  if(loop_count == 5){
+    ROS_INFO("cart diff: %f \tcart speed = %f ", cart_diff,  cart_step * 1000);
+    ROS_INFO("rot diff: %f \trot speed = %f ", rot_diff RAD_TO_DEG,  rot_step * 1000 RAD_TO_DEG);
+  }
+
+  ramp_loops = duration_loops /4;
+
+ 
+  
+  // check time
+  if(loop_count > duration_loops) {
+    ROS_INFO("%f sec movement complete.",duration_loops/LOOP_RATE);
+    loop_count = 0;  
+    return 1;
+  }
+    
+  loop_count++;
+
+
+  scale = std::min((double)loop_count/(double)ramp_loops, (double)1);
+
+
+  if(scale <= 0) ROS_ERROR("Negative scaling factor of %f OMGWTFBBQsemicolon", scale);
+
+  // check command
+  if(cart_step > safe_speed){
+    ROS_ERROR("Step size is too big.");
+    return -1;
+  } else if(rot_step > max_omega){
+    ROS_ERROR("Step size is too big.");
+  } 
+
+  //calculate new position and orientation
+  tf::Transform error = motion_start_tf.inverse() *  end;
+
+  tf::Vector3 error_vec = end.getOrigin() - motion_start_tf.getOrigin();
+  
+  tf::Vector3 vec_plus = error_vec.normalized() * scale * cart_step * loop_count;
+  tf::Vector3 vec_out = motion_start_tf.getOrigin() + vec_plus;
+
+  tf::Vector3 rot_vec = error.getRotation().getAxis();
+  tf::Quaternion quat_out = motion_start_tf.getRotation().slerp(end.getRotation(), loop_count/duration_loops);//motion_start_tf.getRotation() * tf::Quaternion(rot_vec, scale * rot_step * loop_count);
+  
+
+    tf::Transform tf_out;
+    tf_out.setRotation(quat_out);
+    tf_out.setOrigin(vec_out);
+
+
+
+  if(loop_count == 25){
+    ROS_INFO("Start pos: %f, %f, %f", motion_start_tf.getOrigin().x(), motion_start_tf.getOrigin().y()
+      , motion_start_tf.getOrigin().z() );
+    ROS_INFO("End pos: %f, %f, %f", end.getOrigin().x(), end.getOrigin().y()
+      , end.getOrigin().z() );
+    ROS_INFO("Difference pos: %f, %f, %f", error_vec.x(), error_vec.y()
+      , error_vec.z() );
+    error_vec = motion_start_tf.getOrigin() + error_vec;
+    ROS_INFO("Start + difference: %f, %f, %f", error_vec.x(), error_vec.y()
+      , error_vec.z() );
+  }
+
+  out = send_servo_cp(tf_out);
+
+  return out;
+
+}
+
+
+
+/**
+ * @brief      goes to desired position and orientation
+ *
+ * @param[in]  end        The desired endpoint
+ * @param[in]  curr_time  The curr time
+ *
+ * @return     { description_of_the_return_value }
+ */
+char CRTK_motion::go_to_jpos(float angle, time_t curr_time){
+  
+
+  static int loop_count = 0;
+  int out = 0;
+
+  float jr_out[MAX_JOINTS];
+  for(int i=0;i<MAX_JOINTS;i++)
+    jr_out[i] = 0;
+
+  float max_omega = 20 DEG_TO_RAD; //per second 
+
+  //determine max steps needed and corresponding steps for sync'ed finish
+  float rot_step = (.875 * max_omega/LOOP_RATE);
+  float duration_loops = angle/rot_step; //.875
+  
+  // check time
+  if(loop_count > duration_loops) {
+    ROS_INFO("%f sec movement complete.",duration_loops/LOOP_RATE);
+    loop_count = 0;  
+    return 1;
+  }
+  
+  //float scale = 1.0*(float)loop_count/(float)duration_loops;
+  float scale = 1;
+  jr_out[0] = scale*rot_step;
+
+  out = send_servo_jr(jr_out);
+  loop_count++;
+
+  return out;
+
+}
+
+
 
 /**
  * @brief      Sends a servo_cr increment for a given time. (Must call start_motion
@@ -406,7 +561,6 @@ char CRTK_motion::send_servo_cp_rot_angle(tf::Vector3 vec, float total_angle, ti
 }  
 
 //_cr
-
 char CRTK_motion::send_servo_cr(tf::Transform trans){
   // check command
   tf::Vector3 vec = trans.getOrigin();
@@ -474,10 +628,39 @@ tf::Transform CRTK_motion::get_start_tf(){
 }
 
 
+char CRTK_motion::send_servo_jr(float jpos_d[MAX_JOINTS]){
+
+  float step_angle;
+  for(int i=0;i<MAX_JOINTS;i++){
+    step_angle = jpos_d[i];
+    if(fabs(step_angle) > STEP_ROT_LIMIT){ 
+      ROS_ERROR("Servo_jr step limit exceeded. Motion not sent.");
+      reset_servo_jr_updated();
+      return -1;
+    }
+  }
+  
+  // send command
+  servo_jr_updated = 1;
+  for(int i=0;i<MAX_JOINTS;i++)
+    servo_jr_command[i] = jpos_d[i];
+  return 0;
+}
+
+char CRTK_motion::send_servo_jp(float jpos_d[MAX_JOINTS]){
+
+  // send command
+  servo_jp_updated = 1;
+  for(int i=0;i<MAX_JOINTS;i++)
+    servo_jp_command[i] = jpos_d[i];
+  return 0;
+}
+
+
 char CRTK_motion::send_servo_jr_grasp(float step_angle){
 
-  // ROS_INFO("We're in send_servo_jr_grasp");
-  if(fabs(step_angle) > 1000* STEP_ROT_LIMIT){ //TODO, maybe this isn't such a good idea
+  
+  if(fabs(step_angle) > STEP_ROT_LIMIT){ 
     ROS_ERROR("Servo_jr_grasp step limit exceeded. Motion not sent.");
     reset_servo_jr_grasp_updated();
     return -1;
@@ -485,12 +668,33 @@ char CRTK_motion::send_servo_jr_grasp(float step_angle){
   // send command
   servo_jr_grasp_updated = 1;
   servo_jr_grasp_command = step_angle;
+  return 0;
+}
 
+
+void CRTK_motion::reset_servo_jr_updated(){
+  servo_jr_updated = 0;
+}
+
+void CRTK_motion::reset_servo_jp_updated(){
+  servo_jp_updated = 0;
 }
 
 void CRTK_motion::reset_servo_jr_grasp_updated(){
   servo_jr_grasp_updated = 0;
 }
+
+
+
+char CRTK_motion::get_servo_jr_updated(){
+  return servo_jr_updated;
+}
+
+
+char CRTK_motion::get_servo_jp_updated(){
+  return servo_jp_updated;
+}
+
 
 char CRTK_motion::get_servo_jr_grasp_updated(){
   return servo_jr_grasp_updated;
@@ -498,4 +702,24 @@ char CRTK_motion::get_servo_jr_grasp_updated(){
 
 float CRTK_motion::get_servo_jr_grasp_command(){
   return servo_jr_grasp_command;
+}
+
+void CRTK_motion::get_servo_jr_command(float* out, int length){
+  for(int i=0;i<length;i++)
+   out[i] = servo_jr_command[i];
+}
+
+void CRTK_motion::get_servo_jp_command(float* out, int length){
+  for(int i=0;i<length;i++)
+   out[i] = servo_jp_command[i];
+}
+
+char CRTK_motion::set_home_pos(tf::Quaternion q_in, tf::Vector3 v_in){
+  home_pos.setRotation(q_in);
+  home_pos.setOrigin(v_in);
+  return 1;
+}
+
+tf::Transform  CRTK_motion::get_home_pos(){
+  return home_pos;
 }

@@ -86,4 +86,17 @@ int test_3_1(CRTK_robot *, time_t);
 // (functionality) rotate along Z axis for 45 degrees (both arms)
 //    Pass: Ask user
 int test_3_2(CRTK_robot *, time_t);
+
+
+// 3-3 Go home (command: servo_cp) 
+// (functionality) move back to home pose (both arms)
+//    Pass: Ask user
+int test_3_3(CRTK_robot *, time_t);
+
+
+// 4-1 Go home (command: servo_jr) 
+// (functionality) move 10 degrees in the shoulder
+//    Pass: Ask user
+int test_4_1(CRTK_robot *, time_t);
+
 #endif

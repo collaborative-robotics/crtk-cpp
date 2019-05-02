@@ -62,6 +62,7 @@ class CRTK_robot{
     void publish_servo_cr(char);
     void publish_servo_cp(char);
     void publish_servo_jr_grasp(char);
+    void publish_servo_jr(char);
     void run();
   private:
     ros::Subscriber sub_measured_cp1;
@@ -73,7 +74,12 @@ class CRTK_robot{
     ros::Publisher pub_servo_cr2; 
     ros::Publisher pub_servo_cp1;
     ros::Publisher pub_servo_cp2; 
+    ros::Publisher pub_servo_jr1;
+    ros::Publisher pub_servo_jr2; 
+    ros::Publisher pub_servo_jp1;
+    ros::Publisher pub_servo_jp2; 
     ros::Publisher pub_servo_jr_grasp1;
     ros::Publisher pub_servo_jr_grasp2; 
 };
+
 #endif

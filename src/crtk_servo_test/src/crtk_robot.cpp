@@ -32,8 +32,16 @@
 
 #include "crtk_robot.h"
 
+tf::Quaternion raven_gold_home_rot(-0.14,0.636,0.02,0.76);
+tf::Quaternion raven_green_home_rot(0.12,0.62,0.07,0.77);
+tf::Vector3 raven_gold_home_pos(0.0239,-0.0144,-0.0779);
+tf::Vector3 raven_green_home_pos(0.0242, 0.0141,-0.0780);
+
 CRTK_robot::CRTK_robot(ros::NodeHandle n):state(n){
   init_ros(n);
+  arm[0].set_home_pos(raven_gold_home_rot, raven_gold_home_pos);
+  arm[1].set_home_pos(raven_green_home_rot, raven_green_home_pos);
+
 }
 
 bool CRTK_robot::init_ros(ros::NodeHandle n){
@@ -46,9 +54,15 @@ bool CRTK_robot::init_ros(ros::NodeHandle n){
   pub_servo_cr2 = n.advertise<geometry_msgs::TransformStamped>("arm2/servo_cr", 1);
   pub_servo_cp1 = n.advertise<geometry_msgs::TransformStamped>("arm1/servo_cp", 1);
   pub_servo_cp2 = n.advertise<geometry_msgs::TransformStamped>("arm2/servo_cp", 1);
+  pub_servo_jr1 = n.advertise<sensor_msgs::JointState>("arm1/servo_jr", 1);
+  pub_servo_jr2 = n.advertise<sensor_msgs::JointState>("arm2/servo_jr", 1); 
+  pub_servo_jp1 = n.advertise<sensor_msgs::JointState>("arm1/servo_jp", 1);
+  pub_servo_jp2 = n.advertise<sensor_msgs::JointState>("arm2/servo_jp", 1); 
   pub_servo_jr_grasp1 = n.advertise<sensor_msgs::JointState>("grasp1/servo_jr", 1);
   pub_servo_jr_grasp2 = n.advertise<sensor_msgs::JointState>("grasp2/servo_jr", 1);
   return true;
+
+
 }
 
 void CRTK_robot::set_state(CRTK_robot_state *new_state){
@@ -125,6 +139,9 @@ void CRTK_robot::check_motion_commands_to_publish(){
       publish_servo_cp(i);
     }  
 
+    else if(arm[i].get_servo_jr_updated()){
+      publish_servo_jr(i);
+    }
     else if(arm[i].get_servo_jr_grasp_updated()){
       // ROS_INFO("Trying to publish");
       publish_servo_jr_grasp(i);
@@ -200,5 +217,34 @@ void CRTK_robot::publish_servo_jr_grasp(char i){
   else if(i == 1){
     pub_servo_jr_grasp2.publish(msg);
     arm[i].reset_servo_jr_grasp_updated();
+  } 
+}
+
+
+void CRTK_robot::publish_servo_jr(char i){
+  
+  sensor_msgs::JointState msg;
+
+  if(i != 0 && i != 1){
+    ROS_ERROR("Invalid arm type for servo command.");
+  }
+
+  msg.header.stamp = msg.header.stamp.now();
+  float cmd[MAX_JOINTS];
+  // static int ount;
+  // if()
+
+  arm[i].get_servo_jr_command(cmd, MAX_JOINTS); 
+
+  for(int j=0;j<MAX_JOINTS;j++)
+    msg.position.push_back(cmd[j]);
+
+  if(i == 0) {
+    pub_servo_jr1.publish(msg);
+    arm[i].reset_servo_jr_updated();
+  }
+  else if(i == 1){
+    pub_servo_jr2.publish(msg);
+    arm[i].reset_servo_jr_updated();
   } 
 }

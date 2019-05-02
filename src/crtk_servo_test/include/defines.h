@@ -34,11 +34,21 @@
 #include "tf/tf.h"
 #include <cmath> 
 #define MM_TO_M   * 0.001
-#define LOOP_RATE 1100          // Hz (TODO increase to 1000Hz? NOOOOOOO! will fail for _cp)
+#define LOOP_RATE 950         // Hz (TODO increase to 1000Hz? NOOOOOOO! will fail for _cp)
 
+#define RAVEN
+//#define DVRK
 
+#ifdef RAVEN
 #define MAX_JOINTS 7
+#elif  
+#define MAX_JOINTS 15
+#endif
+
+
+
 #define DEG_TO_RAD * M_PI/180
+#define RAD_TO_DEG * 180/M_PI
 
 #define STEP_TRANS_LIMIT  2 MM_TO_M     // change this if loop rate is changed
 #define STEP_ROT_LIMIT    3 DEG_TO_RAD  // change this if loop rate is changed
