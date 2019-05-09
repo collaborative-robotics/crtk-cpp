@@ -32,10 +32,10 @@
  */
 
 #include "servo_tests.h"
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include <crtk_msgs/operating_state.h>
 #include <crtk_msgs/StringStamped.h>
-#include "crtk_robot_state.h"
+#include <crtk_lib_cpp/crtk_robot_state.h>
 #include <sstream>
 #include <ctime>
 #include <iostream>
@@ -48,7 +48,7 @@ tf::Vector3 vec_x(1,0,0);
 tf::Vector3 vec_y(0,1,0);
 tf::Vector3 vec_z(0,0,1);
 
-static int start_test = 0;
+static int start_test = 1;
 
 int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;

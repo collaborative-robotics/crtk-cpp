@@ -32,9 +32,9 @@
 #ifndef _TEST_FUNCS_H_
 #define _TEST_FUNCS_H_
 
-#include "defines.h"
-#include "crtk_robot_state.h"
-#include "crtk_robot.h"
+#include <crtk_lib_cpp/defines.h>
+#include <crtk_lib_cpp/crtk_robot_state.h>
+#include <crtk_lib_cpp/crtk_robot.h>
 #include <ctime>
 
 

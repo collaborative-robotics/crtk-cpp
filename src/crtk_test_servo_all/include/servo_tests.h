@@ -27,10 +27,10 @@
 
  */
 
-#include "defines.h"
-#include "crtk_robot_state.h"
-#include "crtk_robot.h"
-// #include "raven.h"
+#include <crtk_lib_cpp/defines.h>
+#include <crtk_lib_cpp/crtk_robot_state.h>
+#include <crtk_lib_cpp/crtk_robot.h>
+
 
 #ifndef _SERVO_TESTS_
 #define _SERVO_TESTS_

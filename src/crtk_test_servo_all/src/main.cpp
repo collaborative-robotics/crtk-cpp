@@ -34,19 +34,23 @@
 #define MAIN_
 
 
-
-#include "crtk_robot.h"
-#include "ros/ros.h"
+#include <crtk_lib_cpp/defines.h>
+#include <crtk_lib_cpp/crtk_robot_state.h>
+#include <crtk_lib_cpp/crtk_robot.h>
+#include <crtk_lib_cpp/crtk_motion.h>
 #include <crtk_msgs/operating_state.h>
 #include <crtk_msgs/StringStamped.h>
-#include "crtk_robot_state.h"
-#include "crtk_motion.h"
-#include "main.h"
-#include "servo_tests.h"
 #include <sstream>
 #include <ctime>
 #include <iostream>
 #include <string>
+#include <ros/ros.h>
+
+
+#include "main.h"
+#include "servo_tests.h"
+
+
 using namespace std;
 
 

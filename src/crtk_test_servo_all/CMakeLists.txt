@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  crtk_lib_cpp
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES crtk_state_test
-  CATKIN_DEPENDS crtk_msgs roscpp rospy std_msgs message_runtime 
+  CATKIN_DEPENDS crtk_msgs roscpp rospy std_msgs message_runtime crtk_lib_cpp
 #  DEPENDS system_lib
 )
 
@@ -206,14 +207,12 @@ include_directories(
 
 set(${PROJECT_NAME}_SOURCES
     src/main.cpp
-    src/crtk_robot.cpp
-    src/crtk_robot_state.cpp
     src/servo_tests.cpp
-    src/crtk_motion.cpp
     src/test_funcs.cpp)
 
 
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
+
 
 
 #add_dependencies(crtk_test_servo_all ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
