@@ -55,7 +55,7 @@ int main(int argc, char **argv)
   time_t current_time;
   CRTK_robot_state robot_state;
 
-  ros::init(argc, argv, "crtk_state_test");
+  ros::init(argc, argv, "crtk_test_state");
   static ros::NodeHandle n;
   
   robot_state.init_ros(n);

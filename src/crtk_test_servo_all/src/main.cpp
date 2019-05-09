@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 {
 
   time_t current_time;
-  ros::init(argc, argv, "crtk_motion_test");
+  ros::init(argc, argv, "crtk_test_servo_all");
   static ros::NodeHandle n; 
   ros::Rate loop_rate(LOOP_RATE); 
 

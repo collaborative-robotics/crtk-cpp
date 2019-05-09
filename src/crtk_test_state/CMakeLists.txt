@@ -205,9 +205,9 @@ set(${PROJECT_NAME}_SOURCES
     src/crtk_robot_state.cpp
     src/state_tests.cpp)
 
-add_executable(crtk_state_test ${${PROJECT_NAME}_SOURCES})
-add_dependencies(crtk_state_test ${catkin_EXPORTED_TARGETS})
+add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 #add_dependencies(crtk_state_test crtk_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
-target_link_libraries(crtk_state_test ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})

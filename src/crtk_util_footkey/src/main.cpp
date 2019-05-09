@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
 
   //start ros node
-  ros::init(argc, argv, "crtk_foot_pedal_keyboard");
+  ros::init(argc, argv, "crtk_util_footkey");
   static ros::NodeHandle n; 
   ros::Rate loop_rate(LOOP_RATE); 
 
