@@ -94,9 +94,25 @@ int test_3_2(CRTK_robot *, time_t);
 int test_3_3(CRTK_robot *, time_t);
 
 
-// 4-1 Go home (command: servo_jr) 
-// (functionality) move 10 degrees in the shoulder
+// 4-1 Relative joint test (command: servo_jr) 
+// (functionality) move 10 degrees in the shoulder and tool joints
 //    Pass: Ask user
 int test_4_1(CRTK_robot *, time_t);
 
+
+// 4-2 Go home (command: servo_jr) 
+// (functionality) move back to home pose (both arms)
+//    Pass: Ask user
+int test_4_2(CRTK_robot *, time_t);
+
+// 5-1 Absolute joint test (command: servo_jp) 
+// (functionality) move 10 degrees in the shoulder and tool joints
+//    Pass: Ask user
+int test_5_1(CRTK_robot *, time_t);
+
+
+// 5-2 Go home (command: servo_jp) 
+// (functionality) move back to home pose (both arms)
+//    Pass: Ask user
+int test_5_2(CRTK_robot *, time_t);
 #endif

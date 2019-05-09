@@ -48,7 +48,7 @@ tf::Vector3 vec_x(1,0,0);
 tf::Vector3 vec_y(0,1,0);
 tf::Vector3 vec_z(0,0,1);
 
-static int start_test = 9;
+static int start_test = 0;
 
 int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;
@@ -56,7 +56,7 @@ int servo_testing( CRTK_robot* robot, time_t current_time){
   static int finished = 0;
   static int errors = 0;
   int test_status;
-  int num_of_tests = 9;
+  int num_of_tests = 12;
 
 
   // wait for crtk state message to be published before testing
@@ -210,6 +210,51 @@ int servo_testing( CRTK_robot* robot, time_t current_time){
       else if (test_status > 0) {
         current_test ++;
         ROS_INFO("test_4_1 passed: %i", test_status);
+      }
+      break;
+    }
+    case 10:   
+    {
+      // simple servo_jr test
+      test_status = test_4_2(robot, current_time);
+      if (test_status < 0) {
+        errors += 1;
+        current_test ++;
+        ROS_ERROR("test_4_2 fail: %i", test_status);
+      }
+      else if (test_status > 0) {
+        current_test ++;
+        ROS_INFO("test_4_2 passed: %i", test_status);
+      }
+      break;
+    }
+    case 11:   
+    {
+      // simple servo_jr test
+      test_status = test_5_1(robot, current_time);
+      if (test_status < 0) {
+        errors += 1;
+        current_test ++;
+        ROS_ERROR("test_5_1 fail: %i", test_status);
+      }
+      else if (test_status > 0) {
+        current_test ++;
+        ROS_INFO("test_5_1 passed: %i", test_status);
+      }
+      break;
+    }
+    case 12:   
+    {
+      // simple servo_jr test
+      test_status = test_5_2(robot, current_time);
+      if (test_status < 0) {
+        errors += 1;
+        current_test ++;
+        ROS_ERROR("test_5_2 fail: %i", test_status);
+      }
+      else if (test_status > 0) {
+        current_test ++;
+        ROS_INFO("test_5_2 passed: %i", test_status);
       }
       break;
     }
@@ -1231,22 +1276,157 @@ int test_3_3(CRTK_robot *robot, time_t current_time)
 
 
 
-// 4-1 Go home (command: servo_jr) 
-// (functionality) move 10 degrees in the shoulder
+// 4-1 Relative joint test (command: servo_jr) 
+// (functionality) move 10 degrees in the shoulder and tool joints
 //    Pass: Ask user
 int test_4_1(CRTK_robot *robot, time_t current_time)
 {
   static int current_step = 1;
   static time_t pause_start;
   int out = 0;
+  int joint_index = 0;
   std::string start, s1,s2;
   float angle = 20 DEG_TO_RAD; // 10 degrees total
+  float distance = 0.03;   // 3 cm in total
 
   switch(current_step)
   {
     case 1:
     {
       ROS_INFO(" ==================== Starting test_4-1 shoulder jr test ==================== ");
+      ROS_INFO("Start and home robot if not already.");
+      ROS_INFO("(Press 'Enter' when done.)"); 
+      current_step ++;
+      break;
+    }
+    case 2:
+    {
+      // (2) wait for 'Enter' key press
+      getline(std::cin,start);
+      if(start == ""){
+        current_step ++;
+      }
+      break;
+    }
+    case 3:    case 9:    case 15:    case 21:    case 27:    case 33:
+    {
+      static int started  = 0;
+      if(!started){
+      // (3) send resume command to enable robot
+        ROS_INFO("CRTK_RESUME command sent.");
+        ROS_INFO("Waiting for robot to enter CRTK_ENABLED state..."); 
+        CRTK_robot_command command = CRTK_RESUME;
+        robot->state.crtk_command_pb(command); 
+        pause_start = current_time;
+        started = 1;
+      }
+      else if(current_time - pause_start > 1){
+        started = 0;
+        current_step++;
+      }
+      break;
+    }
+    case 4:    case 10:     case 16:    case 22:    case 28:     case 34:  
+    {
+      // (4) check if crtk == enabled
+      if (robot->state.get_enabled()){
+        bool check = current_step == 4 || current_step == 16 || current_step == 28;
+        int curr_arm = (check) ? 0 : 1;
+
+        s1 = (check) ? "left" : "right";
+        if(current_step <= 10)        s2 = "shoulder";
+        else if(current_step <= 22)   s2 = "tool insertion";
+        else                          s2 = "tool grasper";
+
+        ROS_INFO("Moving %s arm in the %s joint ...",s1.c_str(), s2.c_str()); 
+        robot->arm[curr_arm].start_motion(current_time);
+        ROS_INFO("Start moving robot!");
+        current_step ++;
+      }
+      break;
+    }
+    case 5:    case 11:     case 17:    case 23:      case 29:     case 35:
+    {
+      // (5) send motion command to move robot (for 2 secs)
+      bool check = current_step == 5 || current_step == 17 || current_step == 29;
+      int curr_arm = (check) ? 0 : 1;
+
+      if(current_step <= 11)        joint_index = 0;
+      else if(current_step <= 23)   joint_index = 2;
+      else                          joint_index = 6;
+
+      if(joint_index == 2)
+        out = robot->arm[curr_arm].go_to_jpos(0,joint_index, distance, current_time);
+      else
+        out = robot->arm[curr_arm].go_to_jpos(0,joint_index, angle, current_time);
+
+      out = step_success(out, &current_step);
+      break;
+    }
+    case 6:    case 12:    case 18:    case 24:    case 30:     case 36:   
+    {
+      // (6) do a dance
+      out = 1; 
+      out = step_success(out, &current_step);
+      break;
+    }
+    case 7:    case 13:    case 19:     case 25:    case 31:    case 37:
+    {
+      // (7) ask human if it moved (back)?
+      if(current_step <= 13)        s2 = "shoulder";
+      else if(current_step <= 25)   s2 = "tool insertion";
+      else                          s2 = "tool grasper";
+      ROS_INFO("Did the %s move aout %f degrees? (Y/N)", s2.c_str(),angle RAD_TO_DEG);
+      current_step++;
+      break;
+    }
+    case 8:    case 14:    case 20:     case 26:     case 32:    case 38:
+    {
+      // (8) take user input yes or no
+      getline(std::cin,start);
+      if(start == "Y" || start == "y"){
+        out = 1;
+        out = step_success(out, &current_step);
+      }
+      else if(start == "N" || start == "n"){
+        out = -1;
+        out = step_success(out, &current_step);
+      }
+      else{
+        current_step --;
+      }
+      if(current_step == 39 && out == 1)
+        return 1; // at the end of test
+      break;
+    }
+  }
+  if(out < 0) return out;
+  return 0;
+
+}
+
+
+
+// 4-2 Go home (command: servo_jr) 
+// (functionality) move back to home pose (both arms)
+//    Pass: Ask user
+int test_4_2(CRTK_robot *robot, time_t current_time)
+{
+  static int current_step = 1;
+  static time_t pause_start;
+  int out = 0;
+  std::string start, s1,s2;
+  float pos_thresh = 10 DEG_TO_RAD;
+  float vel_thresh = 10 DEG_TO_RAD;
+  float angle = 45 DEG_TO_RAD; // 45 degrees total
+  float completion_percentage_thres = 0.85;  // 0.95;
+  static float home[MAX_JOINTS];
+
+  switch(current_step)
+  {
+    case 1:
+    {
+      ROS_INFO(" ==================== Starting test_4-2 the voyage home ==================== ");
       ROS_INFO("Start and home robot if not already.");
       ROS_INFO("(Press 'Enter' when done.)"); 
       current_step ++;
@@ -1285,8 +1465,9 @@ int test_4_1(CRTK_robot *robot, time_t current_time)
       if (robot->state.get_enabled()){
         int curr_arm = (current_step == 4) ? 0 : 1;
         s1 = (current_step == 4) ? "left" : "right";
-        ROS_INFO("Moving %s arm in the shoulder joint ...",s1.c_str()); 
+        ROS_INFO("Taking %s arm home ...",s1.c_str()); 
         robot->arm[curr_arm].start_motion(current_time);
+        robot->arm[curr_arm].get_home_jpos(home);
         ROS_INFO("Start moving robot!");
         current_step ++;
       }
@@ -1296,14 +1477,15 @@ int test_4_1(CRTK_robot *robot, time_t current_time)
     {
       // (5) send motion command to move robot (for 2 secs)
       int curr_arm = (current_step == 5) ? 0 : 1;
-      out = robot->arm[curr_arm].go_to_jpos(angle, current_time);
+      robot->arm[curr_arm].get_home_jpos(home);
+      out = robot->arm[curr_arm].go_to_jpos(0, home, current_time);
       out = step_success(out, &current_step);
       break;
     }
     case 6:    case 12:    
     {
       // (6) do a dance
-      out = 1; 
+      out = 1; //check_movement_rotation(&robot->arm[curr_arm], angle, 1, current_time, start_pos);
       out = step_success(out, &current_step);
       break;
     }
@@ -1312,7 +1494,7 @@ int test_4_1(CRTK_robot *robot, time_t current_time)
       // (7) ask human if it moved (back)?
       // CRTK_robot_command command = CRTK_PAUSE;
       // robot->state.crtk_command_pb(command); 
-      ROS_INFO("Did the shoulder move aout %f degrees? (Y/N)", angle RAD_TO_DEG);
+      ROS_INFO("Did the end effector go home!? (Y/N)");
       current_step++;
       break;
     }
@@ -1338,5 +1520,250 @@ int test_4_1(CRTK_robot *robot, time_t current_time)
   }
   if(out < 0) return out;
   return 0;
+}
 
+
+// 5-1 Absolute joint test (command: servo_jp) 
+// (functionality) move 10 degrees in the shoulder and tool joints
+//    Pass: Ask user
+int test_5_1(CRTK_robot *robot, time_t current_time)
+{
+  static int current_step = 1;
+  static time_t pause_start;
+  int out = 0;
+  int joint_index = 0;
+  std::string start, s1,s2;
+  float angle = 45 DEG_TO_RAD; // 10 degrees total
+  float distance = 0.03;   // 3 cm in total
+
+  switch(current_step)
+  {
+    case 1:
+    {
+      ROS_INFO(" ==================== Starting test_5-1 shoulder jp test ==================== ");
+      ROS_INFO("Start and home robot if not already.");
+      ROS_INFO("(Press 'Enter' when done.)"); 
+      current_step ++;
+      break;
+    }
+    case 2:
+    {
+      // (2) wait for 'Enter' key press
+      getline(std::cin,start);
+      if(start == ""){
+        current_step ++;
+      }
+      break;
+    }
+    case 3:    case 9:    case 15:    case 21:    case 27:    case 33:
+    {
+      static int started  = 0;
+      if(!started){
+      // (3) send resume command to enable robot
+        ROS_INFO("CRTK_RESUME command sent.");
+        ROS_INFO("Waiting for robot to enter CRTK_ENABLED state..."); 
+        CRTK_robot_command command = CRTK_RESUME;
+        robot->state.crtk_command_pb(command); 
+        pause_start = current_time;
+        started = 1;
+      }
+      else if(current_time - pause_start > 1){
+        started = 0;
+        current_step++;
+      }
+      break;
+    }
+    case 4:    case 10:     case 16:    case 22:    case 28:     case 34:  
+    {
+      // (4) check if crtk == enabled
+      if (robot->state.get_enabled()){
+        bool arm_check = current_step == 4 || current_step == 16 || current_step == 28;
+        int curr_arm = (arm_check) ? 0 : 1;
+
+        s1 = (arm_check) ? "left" : "right";
+        if(current_step <= 10)        s2 = "shoulder";
+        else if(current_step <= 22)   s2 = "tool roll";
+        else                          s2 = "tool grasper";
+
+        ROS_INFO("Moving %s arm in the %s joint ...",s1.c_str(), s2.c_str()); 
+        robot->arm[curr_arm].start_motion(current_time);
+        ROS_INFO("Start moving robot!");
+        current_step ++;
+      }
+      break;
+    }
+    case 5:    case 11:     case 17:    case 23:      case 29:     case 35:
+    {
+      // (5) send motion command to move robot (for 2 secs)
+      bool arm_check = current_step == 5 || current_step == 17 || current_step == 29;
+      int curr_arm = (arm_check) ? 0 : 1;
+
+      if(current_step <= 11)        joint_index = 0;
+      else if(current_step <= 23)   joint_index = 4;
+      else                          joint_index = 6;
+
+      if(joint_index == 2)
+        out = robot->arm[curr_arm].go_to_jpos(1,joint_index, distance, current_time);
+      else
+        out = robot->arm[curr_arm].go_to_jpos(1,joint_index, angle, current_time);
+
+      out = step_success(out, &current_step);
+      break;
+    }
+    case 6:    case 12:    case 18:    case 24:    case 30:     case 36:   
+    {
+      // (6) do a dance
+      out = 1; 
+      out = step_success(out, &current_step);
+      break;
+    }
+    case 7:    case 13:    case 19:     case 25:    case 31:    case 37:
+    {
+      // (7) ask human if it moved (back)?
+      if(current_step <= 13)        s2 = "shoulder";
+      else if(current_step <= 25)   s2 = "tool insertion";
+      else                          s2 = "tool grasper";
+      ROS_INFO("Did the %s move aout %f degrees? (Y/N)", s2.c_str(),angle RAD_TO_DEG);
+      current_step++;
+      break;
+    }
+    case 8:    case 14:    case 20:     case 26:     case 32:    case 38:
+    {
+      // (8) take user input yes or no
+      getline(std::cin,start);
+      if(start == "Y" || start == "y"){
+        out = 1;
+        out = step_success(out, &current_step);
+      }
+      else if(start == "N" || start == "n"){
+        out = -1;
+        out = step_success(out, &current_step);
+      }
+      else{
+        current_step --;
+      }
+      if(current_step == 39 && out == 1)
+        return 1; // at the end of test
+      break;
+    }
+  }
+  if(out < 0) return out;
+  return 0;
+
+}
+
+
+// 5-2 Go home (command: servo_jp) 
+// (functionality) move back to home pose (both arms)
+//    Pass: Ask user
+int test_5_2(CRTK_robot *robot, time_t current_time)
+{
+  static int current_step = 1;
+  static time_t pause_start;
+  int out = 0;
+  std::string start, s1,s2;
+  float pos_thresh = 10 DEG_TO_RAD;
+  float vel_thresh = 10 DEG_TO_RAD;
+  float angle = 45 DEG_TO_RAD; // 45 degrees total
+  float completion_percentage_thres = 0.85;  // 0.95;
+  static float home[MAX_JOINTS];
+
+  switch(current_step)
+  {
+    case 1:
+    {
+      ROS_INFO(" ==================== Starting test_5-2 the voyage home ==================== ");
+      ROS_INFO("Start and home robot if not already.");
+      ROS_INFO("(Press 'Enter' when done.)"); 
+      current_step ++;
+      break;
+    }
+    case 2:
+    {
+      // (2) wait for 'Enter' key press
+      getline(std::cin,start);
+      if(start == ""){
+        current_step ++;
+      }
+      break;
+    }
+    case 3:    case 9:    
+    {
+      static int started  = 0;
+      if(!started){
+      // (3) send resume command to enable robot
+        ROS_INFO("CRTK_RESUME command sent.");
+        ROS_INFO("Waiting for robot to enter CRTK_ENABLED state..."); 
+        CRTK_robot_command command = CRTK_RESUME;
+        robot->state.crtk_command_pb(command); 
+        pause_start = current_time;
+        started = 1;
+      }
+      else if(current_time - pause_start > 1){
+        started = 0;
+        current_step++;
+      }
+      break;
+    }
+    case 4:    case 10:    
+    {
+      // (4) check if crtk == enabled
+      if (robot->state.get_enabled()){
+        int curr_arm = (current_step == 4) ? 0 : 1;
+        s1 = (current_step == 4) ? "left" : "right";
+        ROS_INFO("Taking %s arm home ...",s1.c_str()); 
+        robot->arm[curr_arm].start_motion(current_time);
+        robot->arm[curr_arm].get_home_jpos(home);
+        ROS_INFO("Start moving robot!");
+        current_step ++;
+      }
+      break;
+    }
+    case 5:    case 11:    
+    {
+      // (5) send motion command to move robot (for 2 secs)
+      int curr_arm = (current_step == 5) ? 0 : 1;
+      robot->arm[curr_arm].get_home_jpos(home);
+      out = robot->arm[curr_arm].go_to_jpos(1, home, current_time);
+      out = step_success(out, &current_step);
+      break;
+    }
+    case 6:    case 12:    
+    {
+      // (6) do a dance
+      out = 1; //check_movement_rotation(&robot->arm[curr_arm], angle, 1, current_time, start_pos);
+      out = step_success(out, &current_step);
+      break;
+    }
+    case 7:    case 13:    
+    {
+      // (7) ask human if it moved (back)?
+      // CRTK_robot_command command = CRTK_PAUSE;
+      // robot->state.crtk_command_pb(command); 
+      ROS_INFO("Did the end effector go home!? (Y/N)");
+      current_step++;
+      break;
+    }
+    case 8:    case 14:    
+    {
+      // (8) take user input yes or no
+      getline(std::cin,start);
+      if(start == "Y" || start == "y"){
+        out = 1;
+        out = step_success(out, &current_step);
+      }
+      else if(start == "N" || start == "n"){
+        out = -1;
+        out = step_success(out, &current_step);
+      }
+      else{
+        current_step --;
+      }
+      if(current_step == 15 && out == 1)
+        return 1; // at the end of test
+      break;
+    }
+  }
+  if(out < 0) return out;
+  return 0;
 }

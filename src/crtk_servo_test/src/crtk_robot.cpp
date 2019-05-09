@@ -37,11 +37,29 @@ tf::Quaternion raven_green_home_rot(0.12,0.62,0.07,0.77);
 tf::Vector3 raven_gold_home_pos(0.0239,-0.0144,-0.0779);
 tf::Vector3 raven_green_home_pos(0.0242, 0.0141,-0.0780);
 
+float raven_gold_home_jpos[MAX_JOINTS] = {0.523, 1.584, 0.4002, 0.0715, 0.0950, 0.7537, 0.852};
+float raven_green_home_jpos[MAX_JOINTS] = {0.524, 1.583, 0.400, 0.0660, 0.0598, 0.736, 0.844};
+
+
+
+/**
+ * @brief      Constructs the robot object.
+ *
+ * Starts the ROS interfaces and sets the home position for the specific robot.
+ * 
+ * @todo query the robot to find it's home position
+ *
+ * @param[in]  n     ros node handle
+ */
 CRTK_robot::CRTK_robot(ros::NodeHandle n):state(n){
   init_ros(n);
+
+  #ifdef RAVEN
   arm[0].set_home_pos(raven_gold_home_rot, raven_gold_home_pos);
   arm[1].set_home_pos(raven_green_home_rot, raven_green_home_pos);
-
+  arm[0].set_home_jpos(raven_gold_home_jpos, MAX_JOINTS);
+  arm[1].set_home_jpos(raven_green_home_jpos, MAX_JOINTS);
+  #endif
 }
 
 bool CRTK_robot::init_ros(ros::NodeHandle n){
@@ -60,6 +78,9 @@ bool CRTK_robot::init_ros(ros::NodeHandle n){
   pub_servo_jp2 = n.advertise<sensor_msgs::JointState>("arm2/servo_jp", 1); 
   pub_servo_jr_grasp1 = n.advertise<sensor_msgs::JointState>("grasp1/servo_jr", 1);
   pub_servo_jr_grasp2 = n.advertise<sensor_msgs::JointState>("grasp2/servo_jr", 1);
+  pub_servo_jp_grasp1 = n.advertise<sensor_msgs::JointState>("grasp1/servo_jp", 1);
+  pub_servo_jp_grasp2 = n.advertise<sensor_msgs::JointState>("grasp2/servo_jp", 1);
+
   return true;
 
 
@@ -146,6 +167,15 @@ void CRTK_robot::check_motion_commands_to_publish(){
       // ROS_INFO("Trying to publish");
       publish_servo_jr_grasp(i);
     }
+
+    else if(arm[i].get_servo_jp_updated()){
+      publish_servo_jp(i);
+    }
+    else if(arm[i].get_servo_jp_grasp_updated()){
+      // ROS_INFO("Trying to publish");
+      publish_servo_jp_grasp(i);
+    }
+
   }
 }
 
@@ -246,5 +276,69 @@ void CRTK_robot::publish_servo_jr(char i){
   else if(i == 1){
     pub_servo_jr2.publish(msg);
     arm[i].reset_servo_jr_updated();
+  } 
+}
+
+
+
+/**
+ * @brief      publish servo jp grasp command
+ *
+ * @param[in]  i     { parameter_description }
+ */
+void CRTK_robot::publish_servo_jp_grasp(char i){
+  sensor_msgs::JointState msg;
+
+  if(i != 0 && i != 1){
+    ROS_ERROR("Invalid arm type for servo command.");
+  }
+
+  msg.header.stamp = msg.header.stamp.now();
+  float cmd = arm[i].get_servo_jp_grasp_command(); 
+  msg.position.push_back(cmd);
+  msg.name.push_back("grasp");
+
+  if(i == 0) {
+    pub_servo_jp_grasp1.publish(msg);
+    arm[i].reset_servo_jp_grasp_updated();
+  }
+  else if(i == 1){
+    pub_servo_jp_grasp2.publish(msg);
+    arm[i].reset_servo_jp_grasp_updated();
+  } 
+}
+
+
+
+/**
+ * @brief      publish servo jp command
+ *
+ * @param[in]  i     { parameter_description }
+ */
+void CRTK_robot::publish_servo_jp(char i){
+  
+  sensor_msgs::JointState msg;
+
+  if(i != 0 && i != 1){
+    ROS_ERROR("Invalid arm type for servo command.");
+  }
+
+  msg.header.stamp = msg.header.stamp.now();
+  float cmd[MAX_JOINTS];
+  // static int ount;
+  // if()
+
+  arm[i].get_servo_jp_command(cmd, MAX_JOINTS); 
+
+  for(int j=0;j<MAX_JOINTS;j++)
+    msg.position.push_back(cmd[j]);
+
+  if(i == 0) {
+    pub_servo_jp1.publish(msg);
+    arm[i].reset_servo_jp_updated();
+  }
+  else if(i == 1){
+    pub_servo_jp2.publish(msg);
+    arm[i].reset_servo_jp_updated();
   } 
 }

@@ -79,10 +79,12 @@ public:
   void reset_servo_jr_updated();
   void reset_servo_jp_updated();
   void reset_servo_jr_grasp_updated();
+  void reset_servo_jp_grasp_updated();
 
   char get_servo_jr_updated();
   char get_servo_jp_updated();
   char get_servo_jr_grasp_updated();
+  char get_servo_jp_grasp_updated();
   char get_servo_cr_updated();
   char get_servo_cp_updated();
 
@@ -91,6 +93,7 @@ public:
   void get_servo_jr_command(float*, int);
   void get_servo_jp_command(float*, int);
   float get_servo_jr_grasp_command();
+  float get_servo_jp_grasp_command();
 
   time_t get_start_time();
   tf::Transform get_start_tf();
@@ -98,10 +101,14 @@ public:
   char start_motion( time_t curr_time);
 
   char set_home_pos(tf::Quaternion, tf::Vector3);
+  char set_home_jpos(float*, int);
   tf::Transform get_home_pos();
+  void get_home_jpos(float* out, int length = MAX_JOINTS);
 
   char go_to_pos(tf::Transform, time_t);
-  char go_to_jpos(float, time_t);
+  char go_to_jpos(char,int, float, time_t);
+  char go_to_jpos(char,float*, time_t, int length = MAX_JOINTS);
+  char is_prismatic(int);
 
 private:
   tf::Transform measured_cp;
@@ -116,6 +123,7 @@ private:
   tf::Transform servo_cr_command;
   tf::Transform servo_cp_command;
   float servo_jr_grasp_command;
+  float servo_jp_grasp_command;
   float servo_jr_command[MAX_JOINTS];
   float servo_jp_command[MAX_JOINTS];
 
@@ -124,12 +132,18 @@ private:
   char servo_jr_updated;
   char servo_jp_updated;
   char servo_jr_grasp_updated;
+  char servo_jp_grasp_updated;
 
   time_t motion_start_time;
   tf::Transform motion_start_tf;
   float motion_start_js_pos[MAX_JOINTS];
 
   tf::Transform home_pos;
+  bool home_pos_set;
+  float home_jpos[MAX_JOINTS];
+  bool home_jpos_set;
+  char prismatic_joints[MAX_JOINTS];
+
 };
 
 #endif

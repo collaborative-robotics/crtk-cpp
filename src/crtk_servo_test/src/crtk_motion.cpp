@@ -38,6 +38,21 @@ CRTK_motion::CRTK_motion(){
   servo_jr_updated = 0;
   servo_jp_updated = 0;
   servo_jr_grasp_updated = 0;
+  servo_jp_grasp_updated = 0;
+
+  home_pos_set = 0;
+  home_jpos_set = 0;
+
+  for(int i=0;i<MAX_JOINTS;i++)
+  {
+    prismatic_joints[i] = 0;
+  }
+
+#ifdef RAVEN 
+  prismatic_joints[2] = 1;
+  ROS_INFO("setting to prismatic! %d", prismatic_joints[2]);
+#endif
+  
 }
 
 tf::Transform CRTK_motion::get_measured_cp(){
@@ -417,48 +432,218 @@ char CRTK_motion::go_to_pos(tf::Transform end, time_t curr_time){
 
 
 
+
 /**
- * @brief      goes to desired position and orientation
+ * @brief      go to a desired jpos
  *
- * @param[in]  end        The desired endpoint
+ * @param      jpos_d     The jpos desired
  * @param[in]  curr_time  The curr time
  *
- * @return     { description_of_the_return_value }
+ * @return     success
  */
-char CRTK_motion::go_to_jpos(float angle, time_t curr_time){
-  
-
+char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time, int length)
+{
   static int loop_count = 0;
+  static float diff[MAX_JOINTS];
+  static float step[MAX_JOINTS];
+  static int duration_loops = 0;
+
   int out = 0;
+  float scale;
 
   float jr_out[MAX_JOINTS];
-  for(int i=0;i<MAX_JOINTS;i++)
-    jr_out[i] = 0;
+  static float jp_out[MAX_JOINTS];
 
-  float max_omega = 20 DEG_TO_RAD; //per second 
+
+  if(length > MAX_JOINTS){
+    ROS_ERROR("Toooooo many joints in go_to_jpos");
+    return -1;
+  }
+
+  float max_omega = 20 DEG_TO_RAD; // per second 
+  float max_pris = 0.03;           // meters per second 
 
   //determine max steps needed and corresponding steps for sync'ed finish
-  float rot_step = (.875 * max_omega/LOOP_RATE);
-  float duration_loops = angle/rot_step; //.875
-  
+  float rot_step = (max_omega/LOOP_RATE);
+  float pris_step = (max_pris/LOOP_RATE);
+
+  if(loop_count == 0) // first entry
+  {
+    for(int i=0;i<length;i++)
+    {
+      ROS_INFO("i=%i: start jpos (%f), desired jpos (%f)",i,motion_start_js_pos[i],jpos_d[i]);
+      diff[i] = jpos_d[i] - motion_start_js_pos[i];
+      if(is_prismatic(i))
+        duration_loops = std::max((double)duration_loops, fabs(diff[i])/(pris_step * .75));
+      else
+        duration_loops = std::max((double)duration_loops, fabs(diff[i])/(rot_step * .75));
+    }
+    ROS_INFO("duration_loops = %d",duration_loops);
+
+    for(int i=0;i<length;i++)
+    {
+      step[i] = diff[i]/duration_loops;
+      ROS_INFO("i=%d: step = %f",i,step[i]);
+    }
+    for(int i=0;i<length;i++)
+    {
+      jp_out[i] = motion_start_js_pos[i];
+    }
+  }
+
+  float ramp_loops = 1.0*duration_loops/4;
+
+  for(int i=0;i<length;i++)
+    jr_out[i] = 0;
+
+  if(loop_count<ramp_loops)
+    scale = (loop_count/ramp_loops);
+  else if(loop_count>3*ramp_loops)
+    scale = 1-(loop_count-3.0*ramp_loops)/ramp_loops;
+  else 
+    scale = 1.0;
+
   // check time
   if(loop_count > duration_loops) {
-    ROS_INFO("%f sec movement complete.",duration_loops/LOOP_RATE);
+    ROS_INFO("%f sec movement complete.", (double)duration_loops/(double)LOOP_RATE);
     loop_count = 0;  
+    duration_loops = 0;
+    
     return 1;
   }
-  
-  //float scale = 1.0*(float)loop_count/(float)duration_loops;
-  float scale = 1;
-  jr_out[0] = scale*rot_step;
 
-  out = send_servo_jr(jr_out);
+  for(int i=0;i<length;i++)
+  {
+    jr_out[i] = step[i]*scale;
+  }
+
+  if(absolute_flag)
+  {
+    for(int i=0;i<length;i++)
+    {
+      jp_out[i] += jr_out[i];
+    }
+    out = send_servo_jp(jp_out);
+  }
+  else
+  {
+    out = send_servo_jr(jr_out);
+  }
+
   loop_count++;
 
   return out;
 
 }
 
+
+
+
+/**
+ * @brief      desired joint position
+ *
+ * @param[in]  absolute_flag  The absolute command is used
+ * @param[in]  joint_index    The joint index
+ * @param[in]  angle          The angle in degrees or linear distance in meters
+ * @param[in]  curr_time      The curr time
+ *
+ * @return     success
+ */
+char CRTK_motion::go_to_jpos(char absolute_flag, int joint_index, float angle, time_t curr_time){
+  
+
+  static int loop_count = 0;
+  int out = 0;
+
+  float duration_loops;
+  float jr_out[MAX_JOINTS];
+  static float jp_out[MAX_JOINTS];
+
+  for(int i=0;i<MAX_JOINTS;i++)
+  {
+    if(loop_count == 0)
+      jp_out[i] = motion_start_js_pos[i];
+    jr_out[i] = 0;
+  }
+
+  float max_omega = 20 DEG_TO_RAD; // per second 
+  float max_pris = 0.03;           // meters per second 
+
+  //determine max steps needed and corresponding steps for sync'ed finish
+  float rot_step = (max_omega/LOOP_RATE);
+  float pris_step = (max_pris/LOOP_RATE);
+
+  if(is_prismatic(joint_index))
+    duration_loops = angle/(pris_step * .75);
+  else
+    duration_loops = angle/(rot_step * .75);
+
+  float ramp_loops = 1.0*duration_loops/4;
+  float scale;
+
+  if(loop_count<ramp_loops)
+    scale = (loop_count/ramp_loops);
+  else if(loop_count>3*ramp_loops)
+    scale = 1-(loop_count-3.0*ramp_loops)/ramp_loops;
+  else 
+    scale = 1.0;
+
+  // check time
+  if(loop_count > duration_loops) {
+    ROS_INFO("%f sec movement complete.", (double)duration_loops/(double)LOOP_RATE);
+    loop_count = 0;  
+    return 1;
+  }
+
+  if(joint_index >= 0 && joint_index < MAX_JOINTS)
+  {
+    if(is_prismatic(joint_index))
+      jr_out[joint_index] = -pris_step*scale;
+    else
+      jr_out[joint_index] = rot_step*scale;
+  }
+
+  if(absolute_flag)
+  {
+    for(int i=0;i<MAX_JOINTS;i++)
+    {
+      jp_out[i] += jr_out[i];
+
+    }
+    out = send_servo_jp(jp_out);
+  }
+  else
+  {
+    out = send_servo_jr(jr_out);
+  }
+
+  loop_count++;
+
+  return out;
+
+}
+
+
+
+/**
+ * @brief      check if a joint is prismatic
+ *
+ * @param[in]  joint_index  The joint index
+ *
+ * @return     1 if prismatic, 0 otherwise
+ */
+char CRTK_motion::is_prismatic(int joint_index)
+{
+    if(joint_index >= 0 && joint_index < MAX_JOINTS)
+    {
+      return prismatic_joints[joint_index];
+    }
+    else
+    { 
+      ROS_ERROR("Joint out of bounds - is_prismatic!!!!!!!");
+      return 0;
+    }
+}
 
 
 /**
@@ -494,16 +679,12 @@ char CRTK_motion::send_servo_cr_rot_time(tf::Vector3 vec, float total_angle, flo
 
   tf::Quaternion out_qua = tf::Quaternion(vec,step);
   out = send_servo_cr(tf::Transform(out_qua));
-  // ROS_INFO("Send quaternion:%f,%f,%f,%f step %f", out_qua.x(),out_qua.y(),out_qua.z(),out_qua.w(),step);
+
 
   // check time
   if(curr_time - motion_start_time > duration){
     ROS_INFO("%f sec movement complete.",duration);
-    
-    // //at end of time, send 0 command
-    // tf::Transform ident = tf::Transform();
-    // // ident.setIdentity();
-    // out = send_servo_cr(ident);
+
     return 1;
   }
   return out;
@@ -684,7 +865,9 @@ void CRTK_motion::reset_servo_jr_grasp_updated(){
   servo_jr_grasp_updated = 0;
 }
 
-
+void CRTK_motion::reset_servo_jp_grasp_updated(){
+  servo_jp_grasp_updated = 0;
+}
 
 char CRTK_motion::get_servo_jr_updated(){
   return servo_jr_updated;
@@ -700,9 +883,18 @@ char CRTK_motion::get_servo_jr_grasp_updated(){
   return servo_jr_grasp_updated;
 }
 
+char CRTK_motion::get_servo_jp_grasp_updated(){
+  return servo_jp_grasp_updated;
+}
+
 float CRTK_motion::get_servo_jr_grasp_command(){
   return servo_jr_grasp_command;
 }
+
+float CRTK_motion::get_servo_jp_grasp_command(){
+  return servo_jp_grasp_command;
+}
+
 
 void CRTK_motion::get_servo_jr_command(float* out, int length){
   for(int i=0;i<length;i++)
@@ -717,9 +909,35 @@ void CRTK_motion::get_servo_jp_command(float* out, int length){
 char CRTK_motion::set_home_pos(tf::Quaternion q_in, tf::Vector3 v_in){
   home_pos.setRotation(q_in);
   home_pos.setOrigin(v_in);
+  home_pos_set = 1;
   return 1;
 }
 
+char CRTK_motion::set_home_jpos(float* in, int length=MAX_JOINTS)
+{
+  for(int i=0;i<length;i++)
+  {
+    home_jpos[i] = in[i];
+  }
+
+  home_jpos_set = 1;
+}
+
+
 tf::Transform  CRTK_motion::get_home_pos(){
+  if(!home_pos_set) ROS_ERROR("HOME POS NOT SET DON'T GO THERE, THERE BE DRAGONS AND BROKEN CABLES!");
   return home_pos;
+}
+
+
+void CRTK_motion::get_home_jpos(float* out, int length)
+{
+
+  if(!home_jpos_set) ROS_ERROR("HOME JPOS NOT SET DON'T GO THERE, THERE BE DRAGONS AND BROKEN CABLES!");
+
+  for(int i=0;i<length;i++)
+  {
+    out[i] = home_jpos[i];
+  }
+
 }
