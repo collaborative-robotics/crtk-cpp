@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(crtk_servo_test)
+project(crtk_test_state)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -49,7 +48,7 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-##Generate messages in the 'msg' folder
+## Generate messages in the 'msg' folder
 #add_message_files(
 #  FILES
 #)
@@ -70,9 +69,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-#   crtk_msgs
+#  DEPENDENCIES
+#  std_msgs
 # )
 
 ################################################
@@ -105,9 +103,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS include
+#  INCLUDE_DIRS include
 #  LIBRARIES crtk_state_test
-  CATKIN_DEPENDS crtk_msgs roscpp rospy std_msgs message_runtime 
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime crtk_msgs
 #  DEPENDS system_lib
 )
 
@@ -130,9 +128,9 @@ include_directories(
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-#add_dependencies(${PROJECT_NAME} {${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-
+#add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
@@ -147,7 +145,7 @@ include_directories(
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -202,23 +200,14 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-
-
 set(${PROJECT_NAME}_SOURCES
     src/main.cpp
-    src/crtk_robot.cpp
     src/crtk_robot_state.cpp
-    src/servo_tests.cpp
-    src/crtk_motion.cpp
-    src/test_funcs.cpp)
+    src/state_tests.cpp)
 
+add_executable(crtk_state_test ${${PROJECT_NAME}_SOURCES})
+add_dependencies(crtk_state_test ${catkin_EXPORTED_TARGETS})
 
-add_executable(crtk_servo_test ${${PROJECT_NAME}_SOURCES})
+#add_dependencies(crtk_state_test crtk_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
-
-#add_dependencies(crtk_servo_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-#add_dependencies(crtk_servo_test ${${PROJECT_NAME}_EXPORTED_TARGETS})
-add_dependencies(crtk_servo_test ${catkin_EXPORTED_TARGETS})
-
-
-target_link_libraries(crtk_servo_test ${catkin_LIBRARIES})
+target_link_libraries(crtk_state_test ${catkin_LIBRARIES})
