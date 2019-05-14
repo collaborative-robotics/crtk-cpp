@@ -751,6 +751,12 @@ char CRTK_motion::send_servo_cr(tf::Transform trans){
     reset_servo_cr_updated();
     return -1;
   }
+  double det = trans.getBasis().determinant();
+  if(det <1){
+    ROS_ERROR("Determinenant of servo_cr is %f instead of 1", det);
+    return -1;
+  }
+
   // send command
   servo_cr_updated = 1;
   servo_cr_command = trans;

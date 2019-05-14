@@ -34,7 +34,7 @@
 #include "tf/tf.h"
 #include <cmath> 
 #define MM_TO_M   * 0.001
-#define LOOP_RATE 950         // Hz (TODO increase to 1000Hz? NOOOOOOO! will fail for _cp)
+#define LOOP_RATE 999        // Hz (TODO increase to 1000Hz? NOOOOOOO! will fail for _cp)
 
 #define RAVEN
 //#define DVRK
