@@ -2,13 +2,15 @@
 #include "ros/ros.h"
 #include <crtk_msgs/operating_state.h>
 #include <crtk_msgs/StringStamped.h>
-#include "crtk_robot_state.h"
+
 #include <sstream>
 #include <ctime>
 #include <iostream>
 #include <string>
 
 using namespace std;
+
+int starting_test = 1; //change here to skip ahead
 
 
 /**
@@ -24,6 +26,7 @@ int state_testing(CRTK_robot_state robot_state, time_t current_time){
   static int current_test = 0;
   static int finished = 0;
   static int errors = 0;
+  
 
   int test_status;
   int num_of_tests = 8; //update when adding or removing tests
@@ -31,7 +34,7 @@ int state_testing(CRTK_robot_state robot_state, time_t current_time){
 
   // wait for crtk state message to be published before testing
   if (current_test == 0 && robot_state.get_connected() == 1) {
-    current_test = 1;
+    current_test = starting_test;
   }
 
   // wait for a beat

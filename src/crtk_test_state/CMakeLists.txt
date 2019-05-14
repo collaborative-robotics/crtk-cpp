@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  crtk_lib_cpp
   message_generation
 )
 
@@ -105,7 +106,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES crtk_state_test
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime crtk_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime crtk_msgs crtk_lib_cpp
 #  DEPENDS system_lib
 )
 
@@ -202,7 +203,6 @@ include_directories(
 
 set(${PROJECT_NAME}_SOURCES
     src/main.cpp
-    src/crtk_robot_state.cpp
     src/state_tests.cpp)
 
 add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})

@@ -1,4 +1,4 @@
-#include "crtk_robot_state.h"
+#include <crtk_lib_cpp/crtk_robot_state.h>
 
 #ifndef _STATE_TESTS_
 #define _STATE_TESTS_
