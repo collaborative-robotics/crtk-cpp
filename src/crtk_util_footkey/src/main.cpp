@@ -42,6 +42,11 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+
+#include <cstdio>
+#include <iomanip>
+#include <termios.h>  // needed for terminal settings in getkey()
+
 using namespace std;
 
 
@@ -95,12 +100,12 @@ int main(int argc, char **argv)
  *        
  */
 int foot_pedal(){
-  string key_in;
+  int key_in;
 
-  getline(std::cin,key_in);
+  key_in = getkey();
 
-  if(key_in == "d") return -1; 
-  else if(key_in == "e") return 1;
+  if(key_in == 'd') return -1; 
+  else if(key_in == 'e') return 1;
   else return 0;
 
 }
@@ -132,4 +137,42 @@ int pub_foot(int foot){
   command_pub.publish(msg_command);
   return 1;
 }
+
+
+
+/**
+ *  \fn int getkey()
+ *
+ *  \brief gets keyboard character for switch case's of console_process()
+ *
+ *  \return returns keyboard character
+ *
+ *  \ingroup IO
+ *
+ *  \return character int
+ */
+int getkey() {
+  int character;
+  termios orig_term_attr;
+  termios new_term_attr;
+
+  /* set the terminal to raw mode */
+  tcgetattr(fileno(stdin), &orig_term_attr);
+  memcpy(&new_term_attr, &orig_term_attr, sizeof(termios));
+  new_term_attr.c_lflag &= ~(ECHO | ICANON);
+  new_term_attr.c_cc[VTIME] = 0;
+  new_term_attr.c_cc[VMIN] = 0;
+  tcsetattr(fileno(stdin), TCSANOW, &new_term_attr);
+
+  /* read a character from the stdin stream without blocking */
+  /*   returns EOF (-1) if no character is available */
+  character = fgetc(stdin);
+
+  /* restore the original terminal attributes */
+  tcsetattr(fileno(stdin), TCSANOW, &orig_term_attr);
+
+  return character;
+}
+
+
 #endif

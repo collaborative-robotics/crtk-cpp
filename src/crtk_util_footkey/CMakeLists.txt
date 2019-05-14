@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  crtk_lib_cpp
 )
 
 ## System dependencies are found with CMake's conventions
@@ -106,7 +107,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES crtk_footkey
-  CATKIN_DEPENDS crtk_msgs roscpp std_msgs rospy
+  CATKIN_DEPENDS crtk_msgs roscpp std_msgs rospy crtk_lib_cpp
 #  DEPENDS system_lib
 )
 
