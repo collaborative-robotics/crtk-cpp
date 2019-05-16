@@ -46,8 +46,6 @@ CRTK_robot_state::CRTK_robot_state(){
   is_homed      = 0;
 
   has_connected = 0;
-
-  ROS_INFO("def state cons called");
 }
 
 CRTK_robot_state::CRTK_robot_state(ros::NodeHandle n){
@@ -62,8 +60,6 @@ CRTK_robot_state::CRTK_robot_state(ros::NodeHandle n){
 
   has_connected = 0;
   init_ros(n);
-
-  ROS_INFO("NH state cons called");
 }
 
 
@@ -119,7 +115,6 @@ void CRTK_robot_state::crtk_state_cb(crtk_msgs::operating_state msg){
   set_connected(1);
 
   static int count = 0;
-  // ROS_INFO("sub count = %i: I heard that the robot is in [%i,%i,%i,%i] %i.", count, msg.is_disabled, msg.is_enabled, msg.is_paused, msg.is_fault, has_connected);
   ++count;
 
 

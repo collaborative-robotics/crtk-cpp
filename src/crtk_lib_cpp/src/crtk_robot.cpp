@@ -148,15 +148,13 @@ void CRTK_robot::crtk_measured_js_arm2_cb(sensor_msgs::JointState msg){
 
 
 void CRTK_robot::check_motion_commands_to_publish(){
-  // TODO check robot state first and skip or warn
-  // ROS_INFO("published something...");
-  // ROS_INFO("Checking publish");
+
   for(int i=0;i<2;i++){
-    if(arm[i].get_servo_cr_updated()){ // TODO: add more stuff 
+    if(arm[i].get_servo_cr_updated()){ 
       publish_servo_cr(i);
     }  
 
-    else if(arm[i].get_servo_cp_updated()){ // TODO: add more stuff 
+    else if(arm[i].get_servo_cp_updated()){ 
       publish_servo_cp(i);
     }  
 
@@ -164,7 +162,6 @@ void CRTK_robot::check_motion_commands_to_publish(){
       publish_servo_jr(i);
     }
     else if(arm[i].get_servo_jr_grasp_updated()){
-      // ROS_INFO("Trying to publish");
       publish_servo_jr_grasp(i);
     }
 
@@ -172,7 +169,6 @@ void CRTK_robot::check_motion_commands_to_publish(){
       publish_servo_jp(i);
     }
     else if(arm[i].get_servo_jp_grasp_updated()){
-      // ROS_INFO("Trying to publish");
       publish_servo_jp_grasp(i);
     }
 
@@ -180,7 +176,7 @@ void CRTK_robot::check_motion_commands_to_publish(){
 }
 
 void CRTK_robot::run(){
-  check_motion_commands_to_publish(); // TODO: add more stuff 
+  check_motion_commands_to_publish(); 
 }
 
 void CRTK_robot::publish_servo_cr(char i){
@@ -353,7 +349,5 @@ int main(int argc, char **argv){
   CRTK_robot robot(n);
 
   int count = 0;
-
-  ROS_INFO("Hello ROS world!");
 
 }

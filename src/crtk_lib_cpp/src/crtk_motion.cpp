@@ -50,7 +50,6 @@ CRTK_motion::CRTK_motion(){
 
 #ifdef RAVEN 
   prismatic_joints[2] = 1;
-  ROS_INFO("setting to prismatic! %d", prismatic_joints[2]);
 #endif
   
 }
