@@ -50,6 +50,15 @@ tf::Vector3 vec_z(0,0,1);
 
 static int start_test = 1;
 
+
+/**
+ * @brief      This function loops through all the crtk tests
+ *
+ * @param      robot         The robot object
+ * @param[in]  current_time  The current time
+ *
+ * @return     errors
+ */
 int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;
   static int current_test = 0;
@@ -166,14 +175,20 @@ int servo_testing( CRTK_robot* robot, time_t current_time){
   return errors;
 }
 
-// 2
-// 2-1 Relative (command: servo_cr) Axis motion Test
-// (functionality) move along X axis for 2 secs (both arms)
-//    Pass: Check raven state
-// (functionality) move along Y axis for 2 secs (both arms)
-//    Pass: Check raven state
-// (functionality) move along Z axis for 2 secs (both arms)
-//    Pass: Check raven state
+/**
+ * @brief      The test function 2: 2-1 Relative (command: servo_cr) Axis motion Test
+ *             (functionality) move along X axis for 2 secs (both arms)
+ *                 Pass: Check raven state
+ *             (functionality) move along Y axis for 2 secs (both arms)
+ *                 Pass: Check raven state
+ *             (functionality) move along Z axis for 2 secs (both arms)
+ *                 Pass: Check raven state
+ *
+ * @param      robot         The robot
+ * @param[in]  current_time  The current time
+ *
+ * @return     success 1, fail otherwise
+ */
 int test_2_1(CRTK_robot *robot, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
@@ -284,11 +299,17 @@ int test_2_1(CRTK_robot *robot, time_t current_time){
   return 0;
 }
 
-// 3
-// 2-2 Relative (command: servo_cr) Cube tracing Test
-// (functionality) Trace a cube
-//    Pass: Ask user!
 
+/**
+ * @brief      The test function 3: 2-2 Relative (command: servo_cr) Cube tracing Test
+ *             (functionality) (functionality) Trace a cube
+ *                 Pass: Ask user!
+ *
+ * @param      robot         The robot
+ * @param[in]  current_time  The current time
+ *
+ * @return     success 1, fail otherwise
+ */
 int test_2_2(CRTK_robot *robot, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
@@ -421,10 +442,17 @@ int test_2_2(CRTK_robot *robot, time_t current_time){
   return 0;
 }
 
-// 4
-// 2-3 Relative (command: servo_cr) Orientation axis test
-// (functionality) simple rotation commands test
-// Pass: ask user!
+
+/**
+ * @brief      The test function 4: 2-3 Relative (command: servo_cr) Orientation axis test
+ *            (functionality) simple rotation commands test
+ *                 Pass: ask user!
+ *
+ * @param      robot         The robot
+ * @param[in]  current_time  The current time
+ *
+ * @return     success 1, fail otherwise
+ */
 int test_2_3(CRTK_robot * robot, time_t current_time){
   static int current_step = 1;
   static int curr_arm = 0;
@@ -544,10 +572,18 @@ int test_2_3(CRTK_robot * robot, time_t current_time){
   return 0;
 }
 
-// 5
-// 2-4 Relative (command: servo_cr for grasper) Grasper test
-// (functionality) clapping with grasper for 2 sec (max = 30 deg)
-// Pass: ask user!
+
+
+/**
+ * @brief      The test function 5: 2-4 Relative (command: servo_cr for grasper) Grasper test
+ *            (functionality) clapping with grasper for 2 sec (max = 30 deg)
+ *                 Pass: ask user!
+ *
+ * @param      robot         The robot
+ * @param[in]  current_time  The current time
+ *
+ * @return     success 1, fail otherwise
+ */
 int test_2_4(CRTK_robot * robot, time_t current_time){
   static int current_step = 1;
   static int direction = -1;

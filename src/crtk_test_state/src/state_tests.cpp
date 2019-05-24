@@ -14,7 +14,7 @@ int starting_test = 1; //change here to skip ahead
 
 
 /**
- * @brief      main testing loop that
+ * @brief      main testing loop for all test units
  *
  * @param[in]  robot_state   The robot state
  * @param[in]  current_time  The current time
@@ -223,15 +223,15 @@ int state_testing(CRTK_robot_state robot_state, time_t current_time){
 }
 
 
-//! @brief      test 1
-//! 
-//! I.{disabled, ~homed} + enable [prompt for button press] → {enabled}
-//!
-//! @param[in]  robot_state   The robot state
-//! @param[in]  current_time  The current time
-//!
-//! @return     test status (failure (negative value of failing step), running (0), success(1))
-//!
+
+/**
+ * @brief      The test function 1: I.{disabled, ~homed} + enable [prompt for button press] → {enabled}
+ *
+ * @param[in]  robot_state   The robot state
+ * @param[in]  current_time  The current time
+ *
+ * @return      test status (failure (negative value of failing step), running (0), success(1))
+ */
 int test_1(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
@@ -317,17 +317,17 @@ int test_1(CRTK_robot_state robot_state, time_t current_time){
   return 0;
 }
 
-//! @brief      test 2
-//! 
-//! II.    {paused, homed} + resume [prompt for button press] → {enabled}
-//! IV-2.  {enabled, busy} + pause → {paused / p_up} (starting at case 7)
-//!
-//! @param[in]  robot_state   The robot state
-//! @param[in]  current_time  The current time
-//!
-//! @return     test status (failure (negative value of failing step), running (0), success(1))
-//!
-//!
+
+
+/**
+ * @brief      The test function 2: II.    {paused, homed} + resume [prompt for button press] → {enabled}
+ *                                  IV-2.  {enabled, busy} + pause → {paused / p_up} (starting at case 7)
+ *
+ * @param[in]  robot_state   The robot state
+ * @param[in]  current_time  The current time
+ *
+ * @return      test status (failure (negative value of failing step), running (0), success(1))
+ */
 int test_2(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
@@ -452,16 +452,16 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
 }
 
 
-//! @brief      test 3
-//! 
-//! VI-2.    {paused, p_up} + disable → {disabled / e-stop} 
-//! VIII-2.    {disabled, homed} + unhome → {disabled, ~homed / e-stop} (starting at case 8)
-//!
-//! @param[in]  robot_state   The robot state
-//! @param[in]  current_time  The current time
-//!
-//! @return     test status (failure (negative value of failing step), running (0), success(1))
-//!
+
+/**
+ * @brief      The test function 3: VI-2.    {paused, p_up} + disable → {disabled / e-stop} 
+ *                                  VIII-2.    {disabled, homed} + unhome → {disabled, ~homed / e-stop} (starting at case 8)
+ *
+ * @param[in]  robot_state   The robot state
+ * @param[in]  current_time  The current time
+ *
+ * @return      test status (failure (negative value of failing step), running (0), success(1))
+ */
 int test_3(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
@@ -610,16 +610,16 @@ int test_3(CRTK_robot_state robot_state, time_t current_time){
 }
 
 
-//! @brief      test 4
-//! 
-//! IV-1.    {enabled, homing} + pause → {disabled / e-stop} 
-//! VIII-1.  {disabled, ~homed} + unhome → {disabled, ~homed / e-stop}
-//!
-//! @param[in]  robot_state   The robot state
-//! @param[in]  current_time  The current time
-//!
-//! @return     test status (failure (negative value of failing step), running (0), success(1))
-//!
+
+/**
+ * @brief      The test function 4: IV-1.    {enabled, homing} + pause → {disabled / e-stop} 
+ *                                  VIII-1.  {disabled, ~homed} + unhome → {disabled, ~homed / e-stop}
+ *
+ * @param[in]  robot_state   The robot state
+ * @param[in]  current_time  The current time
+ *
+ * @return      test status (failure (negative value of failing step), running (0), success(1))
+ */
 int test_4(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
@@ -785,16 +785,16 @@ int test_4(CRTK_robot_state robot_state, time_t current_time){
 }
 
 
-//! @brief      test 5
-//! 
-//! III-1.    {enabled, homing} + disable → {disabled / e-stop} 
-//! III-2.    {enabled, busy} + disable → {disabled / e-stop}
-//!
-//! @param[in]  robot_state   The robot state
-//! @param[in]  current_time  The current time
-//!
-//! @return     test status (failure (negative value of failing step), running (0), success(1))
-//!
+
+/**
+ * @brief      The test function 5: III-1.    {enabled, homing} + disable → {disabled / e-stop} 
+ *                                  III-2.    {enabled, busy} + disable → {disabled / e-stop}
+ *
+ * @param[in]  robot_state   The robot state
+ * @param[in]  current_time  The current time
+ *
+ * @return      test status (failure (negative value of failing step), running (0), success(1))
+ */
 int test_5(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
@@ -916,17 +916,17 @@ int test_5(CRTK_robot_state robot_state, time_t current_time){
   return 0;
 }
 
-//! 
-//! @brief      test 6
-//! 
-//! VIII-3.    {enabled, homing} + unhome → {disabled, ~homed / e-stop} 
-//! VIII-4.    {enabled, busy} + unhome → {disabled, ~homed / e-stop}
-//!
-//! @param[in]  robot_state   The robot state
-//! @param[in]  current_time  The current time
-//!
-//! @return     { description_of_the_return_value }
-//!
+
+
+/**
+ * @brief      The test function 6: VIII-3.    {enabled, homing} + unhome → {disabled, ~homed / e-stop} 
+ *                                  VIII-4.    {enabled, busy} + unhome → {disabled, ~homed / e-stop}
+ *
+ * @param[in]  robot_state   The robot state
+ * @param[in]  current_time  The current time
+ *
+ * @return      test status (failure (negative value of failing step), running (0), success(1))
+ */
 int test_6(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
@@ -1048,15 +1048,16 @@ int test_6(CRTK_robot_state robot_state, time_t current_time){
   return 0;
 }
 
-//! @brief      test 7
-//! 
-//! VIII-6.    {paused, homed} + unhome → {disabled, ~homed / e-stop}
-//!
-//! @param[in]  robot_state   The robot state
-//! @param[in]  current_time  The current time
-//!
-//! @return     test status (failure (negative value of failing step), running (0), success(1))
-//!
+
+
+/**
+ * @brief      The test function 7: VIII-6.    {paused, homed} + unhome → {disabled, ~homed / e-stop}
+ *
+ * @param[in]  robot_state   The robot state
+ * @param[in]  current_time  The current time
+ *
+ * @return      test status (failure (negative value of failing step), running (0), success(1))
+ */
 int test_7(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;
@@ -1186,17 +1187,16 @@ int test_7(CRTK_robot_state robot_state, time_t current_time){
 }
 
 
-//! @brief      test 8
-//! 
-//! V-3.    {disabled, ~homed} + home [prompt for button press] → {enabled, homing / init}
-//! V-2.    {paused, homed} + home [prompt for button press] → {enabled, homing / init}
-//! V-1.    {enabled, homed} + home [prompt for button press] → {enabled, homing / init}
-//! 
-//! @param[in]  robot_state   The robot state
-//! @param[in]  current_time  The current time
-//!
-//! @return     test status (failure (negative value of failing step), running (0), success(1))
-//!
+
+/**
+ * @brief      The test function 8: V-3.    {disabled, ~homed} + home [prompt for button press] → {enabled, homing / init}
+ *                                  V-2.    {paused, homed} + home [prompt for button press] → {enabled, homing / init}
+ *                                  V-1.    {enabled, homed} + home [prompt for button press] → {enabled, homing / init}
+ * @param[in]  robot_state   The robot state
+ * @param[in]  current_time  The current time
+ *
+ * @return      test status (failure (negative value of failing step), running (0), success(1))
+ */
 int test_8(CRTK_robot_state robot_state, time_t current_time){
   static int current_step = 0;
   static time_t pause_start;

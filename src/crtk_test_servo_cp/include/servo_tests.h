@@ -36,7 +36,7 @@
 #define _SERVO_TESTS_
 
 
-
+// This function loops through all the crtk tests
 int servo_testing(CRTK_robot*, time_t);
 
 // 3-1 Absolute (command: servo_cp) Axis motion Test

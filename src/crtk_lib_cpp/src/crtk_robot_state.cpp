@@ -117,19 +117,21 @@ void CRTK_robot_state::crtk_state_cb(crtk_msgs::operating_state msg){
   static int count = 0;
   ++count;
 
-
-
 }
 
 
+
+/**
+ * @brief      send crtk robot state transition command
+ *
+ * @param[in]  command  The command
+ */
 void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
   
   static int count = 0;
   static crtk_msgs::StringStamped msg_command;
 
   //robot command supports ("ENABLE", "DISABLE", "PAUSE", "RESUME", "NULL")
-
-
   switch(command)
   {
     case CRTK_ENABLE:
@@ -169,13 +171,17 @@ void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
   }
   msg_command.header.stamp = msg_command.header.stamp.now();
   pub.publish(msg_command);
-  
-  // ROS_INFO("pub count = %i \t command: %s.", count, msg_command.data.c_str());
-
   ++count;
 
 }
 
+
+
+/**
+ * @brief      Gets the robot state.
+ *
+ * @return     The state.
+ */
 CRTK_robot_state_enum CRTK_robot_state::get_state(){
   if(is_disabled){
     return CRTK_DISABLED;
@@ -191,29 +197,65 @@ CRTK_robot_state_enum CRTK_robot_state::get_state(){
   }
 }
 
+
+
+/**
+ * @brief      Sets robot to is_homing.
+ *
+ * @return     is_homing flag
+ */
 bool CRTK_robot_state::set_homing(){
   is_homing = is_busy && !is_homed;
   return is_homing;
 }
+
+
+
+/**
+ * @brief      Sets robot is_busy flag.
+ *
+ * @param[in]  new_state  The value
+ *
+ * @return     is_busy flag
+ */
 bool CRTK_robot_state::set_busy(bool new_state){
   is_busy = new_state;
   return is_busy;
 }
-// bool CRTK_robot_state::set_ready(bool new_state){
-//   is_ready = new_state;
-//   return is_ready;
-// }
+
+
+
+/**
+ * @brief      Sets robot is_homed flag.
+ *
+ * @param[in]  new_state  The value
+ *
+ * @return     is_homed flag
+ */
 bool CRTK_robot_state::set_homed(bool new_state){
   is_homed = new_state;
   return is_homed;
 }
 
+
+
+/**
+ * @brief      Decide robot ready status based on other robot status flags
+ *
+ * @return     is_ready flag
+ */
 bool CRTK_robot_state::ready_logic(){
   is_ready = !is_busy && is_homed && is_enabled;
   return is_ready;
 }
 
 
+
+/**
+ * @brief      Sets the robot to disabled state.
+ *
+ * @return     0
+ */
 bool CRTK_robot_state::set_disabled_state(){
   is_disabled   = 1;
   is_enabled    = 0;
@@ -222,6 +264,14 @@ bool CRTK_robot_state::set_disabled_state(){
 
   return 0;
 }
+
+
+
+/**
+ * @brief      Sets the robot to enabled state.
+ *
+ * @return     0
+ */
 bool CRTK_robot_state::set_enabled_state(){
   is_disabled   = 0;
   is_enabled    = 1;
@@ -230,6 +280,14 @@ bool CRTK_robot_state::set_enabled_state(){
 
   return 0;
 }
+
+
+
+/**
+ * @brief      Sets the robot to paused state.
+ *
+ * @return     0
+ */
 bool CRTK_robot_state::set_paused_state(){
   is_disabled   = 0;
   is_enabled    = 0;
@@ -238,6 +296,14 @@ bool CRTK_robot_state::set_paused_state(){
 
   return 0;
 }
+
+
+
+/**
+ * @brief      Sets the robot to fault state.
+ *
+ * @return     0
+ */
 bool CRTK_robot_state::set_fault_state(){
   is_disabled   = 0;
   is_enabled    = 0;
@@ -247,11 +313,27 @@ bool CRTK_robot_state::set_fault_state(){
   return 0;
 }
 
+
+
+/**
+ * @brief      Sets the has_connected flag for the robot
+ *
+ * @param[in]  val   The value
+ *
+ * @return     0
+ */
 bool CRTK_robot_state::set_connected(bool val){
   if(val == 0 || val == 1)
     has_connected = val;
 }
 
+
+
+/**
+ * @brief      Maps the robot state to single char
+ *
+ * @return     char version of the robot state
+ */
 char CRTK_robot_state::state_char(){
   char out;
 
@@ -265,30 +347,98 @@ char CRTK_robot_state::state_char(){
 }
 
 
+
+/**
+ * @brief      Gets the disabled flag.
+ *
+ * @return     The disabled flag.
+ */
 bool CRTK_robot_state::get_disabled(){
   return is_disabled;
 }
+
+
+/**
+ * @brief      Gets the enabled flag.
+ *
+ * @return     The enabled flag.
+ */
 bool CRTK_robot_state::get_enabled(){
   return is_enabled;
 }
+
+
+/**
+ * @brief      Gets the paused flag.
+ *
+ * @return     The paused flag.
+ */
 bool CRTK_robot_state::get_paused(){
   return is_paused;
 }
+
+
+
+/**
+ * @brief      Gets the fault flag.
+ *
+ * @return     The fault flag.
+ */
 bool CRTK_robot_state::get_fault(){
   return is_fault;
 }
+
+
+
+/**
+ * @brief      Gets the homing flag.
+ *
+ * @return     The homing flag.
+ */
 bool CRTK_robot_state::get_homing(){
   return is_homing;
 }
+
+
+
+/**
+ * @brief      Gets the busy flag.
+ *
+ * @return     The busy flag.
+ */
 bool CRTK_robot_state::get_busy(){
   return is_busy;
 }
+
+
+
+/**
+ * @brief      Gets the ready flag.
+ *
+ * @return     The ready flag.
+ */
 bool CRTK_robot_state::get_ready(){
   return is_ready;
 }
+
+
+
+/**
+ * @brief      Gets the homed flag.
+ *
+ * @return     The homed flag.
+ */
 bool CRTK_robot_state::get_homed(){
   return is_homed;
 }
+
+
+
+/**
+ * @brief      Gets the connected flag.
+ *
+ * @return     The connected flag.
+ */
 bool CRTK_robot_state::get_connected(){
   return has_connected;
 }

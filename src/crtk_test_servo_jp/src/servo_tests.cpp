@@ -50,6 +50,15 @@ tf::Vector3 vec_z(0,0,1);
 
 static int start_test = 1;
 
+
+/**
+ * @brief      This function loops through all the crtk tests
+ *
+ * @param      robot         The robot object
+ * @param[in]  current_time  The current time
+ *
+ * @return     errors
+ */
 int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;
   static int current_test = 0;
@@ -138,9 +147,16 @@ int servo_testing( CRTK_robot* robot, time_t current_time){
 }
 
 
-// 5-1 Absolute joint test (command: servo_jp) 
-// (functionality) move 10 degrees in the shoulder and tool joints
-//    Pass: Ask user
+/**
+ * @brief      The test function 10: 5-1 Absolute joint test (command: servo_jp) 
+ *            (functionality) move 10 degrees in the shoulder and tool joints
+ *                 Pass: ask user!
+ *
+ * @param      robot         The robot
+ * @param[in]  current_time  The current time
+ *
+ * @return     success 1, fail otherwise
+ */
 int test_5_1(CRTK_robot *robot, time_t current_time)
 {
   static int current_step = 1;
@@ -268,9 +284,17 @@ int test_5_1(CRTK_robot *robot, time_t current_time)
 }
 
 
-// 5-2 Go home (command: servo_jp) 
-// (functionality) move back to home pose (both arms)
-//    Pass: Ask user
+
+/**
+ * @brief      The test function 11: 5-2 Go home (command: servo_jp) 
+ *            (functionality) move back to home pose (both arms)
+ *                 Pass: ask user!
+ *
+ * @param      robot         The robot
+ * @param[in]  current_time  The current time
+ *
+ * @return     success 1, fail otherwise
+ */
 int test_5_2(CRTK_robot *robot, time_t current_time)
 {
   static int current_step = 1;

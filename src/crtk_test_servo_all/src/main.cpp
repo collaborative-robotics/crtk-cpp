@@ -58,6 +58,15 @@ using namespace std;
  * This tutorial demonstrates simple sending of messages over the ROS system.
  */
 
+
+/**
+ * @brief      The main function
+ *
+ * @param[in]  argc  The argc
+ * @param      argv  The argv
+ *
+ * @return     0
+ */
 int main(int argc, char **argv)
 {
 

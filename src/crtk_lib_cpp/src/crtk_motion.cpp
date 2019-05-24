@@ -32,6 +32,10 @@
 
 #include "crtk_motion.h"
 
+
+/**
+ * @brief      Constructs the CRTK_motion object.
+ */
 CRTK_motion::CRTK_motion(){
   servo_cr_updated = 0;
   servo_cp_updated = 0;
@@ -54,14 +58,34 @@ CRTK_motion::CRTK_motion(){
   
 }
 
+
+/**
+ * @brief      Gets the measured cartesian pose.
+ *
+ * @return     The measured cp.
+ */
 tf::Transform CRTK_motion::get_measured_cp(){
   return measured_cp;
 }
 
+
+/**
+ * @brief      Sets the measured cartesian pose.
+ *
+ * @param[in]  trans  The transformation matrix
+ */
 void CRTK_motion::set_measured_cp(tf::Transform trans){
   measured_cp = tf::Transform(trans);
 }
 
+
+/**
+ * @brief      Gets the measured js position for a specific joint.
+ *
+ * @param[in]  index  The joint index
+ *
+ * @return     The measured js position.
+ */
 float CRTK_motion::get_measured_js_pos(int index){
   if(index<0 || index>MAX_JOINTS){
     ROS_ERROR("Index out of range.");
@@ -70,6 +94,15 @@ float CRTK_motion::get_measured_js_pos(int index){
   return measured_js_pos[index];
 }
 
+
+/**
+ * @brief      Gets the measured js position vector for all joints.
+ *
+ * @param      out     The out
+ * @param[in]  length  The length
+ *
+ * @return     The measured js position.
+ */
 int CRTK_motion::get_measured_js_pos(float out[MAX_JOINTS], int length){
   if(length > MAX_JOINTS){
     ROS_ERROR("Wrong number of joints.");
@@ -78,15 +111,19 @@ int CRTK_motion::get_measured_js_pos(float out[MAX_JOINTS], int length){
 
   for(int i=0; i<length; i++)
     out[i] = measured_js_pos[i];
-  // static int count = 0;
-  // count ++;
-  // if(count% 25 == 1){
-  //   ROS_INFO("out = %f, measured = %f",out[0],measured_js_pos[0]);  
-  // }
 
   return 1;
 }
 
+
+/**
+ * @brief      Sets the measured js position at a specific joint.
+ *
+ * @param[in]  index  The joint index
+ * @param[in]  value  The value
+ *
+ * @return     success
+ */
 int CRTK_motion::set_measured_js_pos(int index, float value){
   if(index<0 || index>MAX_JOINTS){
     ROS_ERROR("Wrong index of joints.");
@@ -96,6 +133,15 @@ int CRTK_motion::set_measured_js_pos(int index, float value){
   return 1;
 }
 
+
+/**
+ * @brief      Sets the measured js position for all the joints.
+ *
+ * @param      js_value  The js value
+ * @param[in]  length    The length
+ *
+ * @return     success
+ */
 int CRTK_motion::set_measured_js_pos(float js_value[MAX_JOINTS], int length){
   if(length > MAX_JOINTS){
     ROS_ERROR("Wrong number of joints.");
@@ -107,7 +153,14 @@ int CRTK_motion::set_measured_js_pos(float js_value[MAX_JOINTS], int length){
   return 1;
 }
 
-//vel
+
+/**
+ * @brief      Gets the measured js velocity.
+ *
+ * @param[in]  index  The joint index
+ *
+ * @return     The measured js velocity.
+ */
 float CRTK_motion::get_measured_js_vel(int index){
   if(index<0 || index>MAX_JOINTS){
     ROS_ERROR("Index out of range.");
@@ -116,6 +169,15 @@ float CRTK_motion::get_measured_js_vel(int index){
   return measured_js_vel[index];
 }
 
+
+/**
+ * @brief      Gets the measured js velocity.
+ *
+ * @param      out     The output joint velocity array
+ * @param[in]  length  The length
+ *
+ * @return     The measured js velocity.
+ */
 int CRTK_motion::get_measured_js_vel(float out[MAX_JOINTS], int length){
   if(length > MAX_JOINTS){
     ROS_ERROR("Wrong number of joints.");
@@ -128,6 +190,16 @@ int CRTK_motion::get_measured_js_vel(float out[MAX_JOINTS], int length){
   return 1;
 }
 
+
+
+/**
+ * @brief      Sets the measured js velocity for a specific joint.
+ *
+ * @param[in]  index  The joint index
+ * @param[in]  value  The joint velocity value
+ *
+ * @return     success 1, fail -1
+ */
 int CRTK_motion::set_measured_js_vel(int index, float value){
   if(index<0 || index>MAX_JOINTS){
     ROS_ERROR("Wrong index of joints.");
@@ -137,6 +209,16 @@ int CRTK_motion::set_measured_js_vel(int index, float value){
   return 1;
 }
 
+
+
+/**
+ * @brief      Sets the measured js velocity.
+ *
+ * @param      js_value  The array of js values
+ * @param[in]  length    The length
+ *
+ * @return     success 1, fail -1
+ */
 int CRTK_motion::set_measured_js_vel(float js_value[MAX_JOINTS], int length){
   if(length > MAX_JOINTS){
     ROS_ERROR("Wrong number of joints.");
@@ -147,7 +229,15 @@ int CRTK_motion::set_measured_js_vel(float js_value[MAX_JOINTS], int length){
 
   return 1;
 }
-//eff
+
+
+/**
+ * @brief      Gets the measured js effort for a specific joint.
+ *
+ * @param[in]  index  The joint index
+ *
+ * @return     The measured js effort.
+ */
 float CRTK_motion::get_measured_js_eff(int index){
   if(index<0 || index>MAX_JOINTS){
     ROS_ERROR("Index out of range.");
@@ -156,6 +246,16 @@ float CRTK_motion::get_measured_js_eff(int index){
   return measured_js_eff[index];
 }
 
+
+
+/**
+ * @brief      Gets the measured js effort.
+ *
+ * @param      out     The output joint array
+ * @param[in]  length  The length
+ *
+ * @return     The measured js eff.
+ */
 int CRTK_motion::get_measured_js_eff(float out[MAX_JOINTS], int length){
   if(length > MAX_JOINTS){
     ROS_ERROR("Wrong number of joints.");
@@ -168,6 +268,15 @@ int CRTK_motion::get_measured_js_eff(float out[MAX_JOINTS], int length){
   return 1;
 }
 
+
+/**
+ * @brief      Sets the measured js effort for a specific joint.
+ *
+ * @param[in]  index  The joint index
+ * @param[in]  value  The value
+ *
+ * @return     success
+ */
 int CRTK_motion::set_measured_js_eff(int index, float value){
   if(index<0 || index>MAX_JOINTS){
     ROS_ERROR("Wrong index of joints.");
@@ -177,6 +286,15 @@ int CRTK_motion::set_measured_js_eff(int index, float value){
   return 1;
 }
 
+
+/**
+ * @brief      Sets the measured js effort array.
+ *
+ * @param      js_value  The js value array
+ * @param[in]  length    The length
+ *
+ * @return     success 1, fail -1
+ */
 int CRTK_motion::set_measured_js_eff(float js_value[MAX_JOINTS], int length){
   if(length > MAX_JOINTS){
     ROS_ERROR("Wrong number of joints.");
@@ -188,19 +306,19 @@ int CRTK_motion::set_measured_js_eff(float js_value[MAX_JOINTS], int length){
   return 1;
 }
 
+
 /**
  * @brief      Starts a motion.
  *
  * @param[in]  curr_time  The curr time
  *
- * @return     { description_of_the_return_value }
+ * @return     success
  */
 char CRTK_motion::start_motion( time_t curr_time){
   motion_start_time = curr_time;
   motion_start_tf = get_measured_cp();
   get_measured_js_pos(motion_start_js_pos,MAX_JOINTS);
 }
-
 
 
 /**
@@ -211,7 +329,7 @@ char CRTK_motion::start_motion( time_t curr_time){
  * @param[in]  duration    The duration
  * @param[in]  curr_time   The curr time
  *
- * @return     { description_of_the_return_value }
+ * @return     success 1, fail -1
  */
 char CRTK_motion::send_servo_cr_time(tf::Vector3 vec, float total_dist, float duration, time_t curr_time){
   // static char start = 1;
@@ -260,7 +378,7 @@ char CRTK_motion::send_servo_cr_time(tf::Vector3 vec, float total_dist, float du
  * @param[in]  duration    The duration
  * @param[in]  curr_time   The curr time
  *
- * @return     { description_of_the_return_value }
+ * @return     success
  */
 char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time_t curr_time){
   // static char start = 1;
@@ -320,9 +438,6 @@ char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time
   tf_out.setOrigin(motion_start_tf.getOrigin()+vec*(step*loop_count*scale));
   out = send_servo_cp(tf_out);
 
-  
-
-  
   return out;
 }
 
@@ -333,7 +448,7 @@ char CRTK_motion::send_servo_cp_distance(tf::Vector3 vec, float total_dist, time
  * @param[in]  end        The desired endpoint
  * @param[in]  curr_time  The curr time
  *
- * @return     { description_of_the_return_value }
+ * @return     success
  */
 char CRTK_motion::go_to_pos(tf::Transform end, time_t curr_time){
   static int loop_count = 0;
@@ -430,10 +545,8 @@ char CRTK_motion::go_to_pos(tf::Transform end, time_t curr_time){
 }
 
 
-
-
 /**
- * @brief      go to a desired jpos
+ * @brief      go to a desired jpos (for all joints)
  *
  * @param      jpos_d     The jpos desired
  * @param[in]  curr_time  The curr time
@@ -539,7 +652,7 @@ char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time
 
 
 /**
- * @brief      desired joint position
+ * @brief      desired joint position (for a single joint)
  *
  * @param[in]  absolute_flag  The absolute command is used
  * @param[in]  joint_index    The joint index
@@ -654,7 +767,7 @@ char CRTK_motion::is_prismatic(int joint_index)
  * @param[in]  duration     The duration
  * @param[in]  curr_time    The curr time
  *
- * @return     { description_of_the_return_value }
+ * @return     success 1, fail -1
  */
 char CRTK_motion::send_servo_cr_rot_time(tf::Vector3 vec, float total_angle, float duration, time_t curr_time){
   // static char start = 1;
@@ -698,7 +811,7 @@ char CRTK_motion::send_servo_cr_rot_time(tf::Vector3 vec, float total_angle, flo
  * @param[in]  duration     The duration
  * @param[in]  curr_time    The curr time
  *
- * @return     { description_of_the_return_value }
+ * @return     success 1, fail -1
  */
 char CRTK_motion::send_servo_cp_rot_angle(tf::Vector3 vec, float total_angle, time_t curr_time){
   // static char start = 1;
@@ -740,7 +853,15 @@ char CRTK_motion::send_servo_cp_rot_angle(tf::Vector3 vec, float total_angle, ti
   return out;
 }  
 
-//_cr
+
+
+/**
+ * @brief      Sends a servo carriage return.
+ *
+ * @param[in]  trans  The transaction
+ *
+ * @return     success 0, fail -1
+ */
 char CRTK_motion::send_servo_cr(tf::Transform trans){
   // check command
   tf::Vector3 vec = trans.getOrigin();
@@ -763,23 +884,47 @@ char CRTK_motion::send_servo_cr(tf::Transform trans){
   return 0;
 }
 
+
+
+/**
+ * @brief      reset servo_cr updated flag
+ */
 void CRTK_motion::reset_servo_cr_updated(){
   servo_cr_command = tf::Transform();
   servo_cr_updated = 0;
 }
 
+
+
+/**
+ * @brief      Checks the servo_cr updated flag.
+ *
+ * @return     The servo_cr updated flag value.
+ */
 char CRTK_motion::get_servo_cr_updated(){
-  // servo_cr_updated = 1;
-  // ROS_INFO("get says: %i", servo_cr_updated);
   return servo_cr_updated;
 }
 
+
+
+/**
+ * @brief      Gets the servo_cr motion command.
+ *
+ * @return     The servo_cr command
+ */
 tf::Transform CRTK_motion::get_servo_cr_command(){
   return tf::Transform(servo_cr_command);
 }
 
-//_cp
 
+
+/**
+ * @brief      Sends a servo cp motion command.
+ *
+ * @param[in]  trans  The transformation
+ *
+ * @return     0
+ */
 char CRTK_motion::send_servo_cp(tf::Transform trans){
 
   // send command
@@ -789,31 +934,71 @@ char CRTK_motion::send_servo_cp(tf::Transform trans){
   return 0;
 }
 
+
+
+/**
+ * @brief      Resets the servo_cp updated flag
+ */
 void CRTK_motion::reset_servo_cp_updated(){
   servo_cp_command = tf::Transform();
   servo_cp_updated = 0;
 }
 
+
+
+/**
+ * @brief      Checks the servo cp updated flag.
+ *
+ * @return     The servo cp updated flag.
+ */
 char CRTK_motion::get_servo_cp_updated(){
   // servo_cp_updated = 1;
   // ROS_INFO("get says: %i", servo_cp_updated);
   return servo_cp_updated;
 }
 
+
+
+/**
+ * @brief      Gets the servo cp command.
+ *
+ * @return     The servo cp command.
+ */
 tf::Transform CRTK_motion::get_servo_cp_command(){
   return tf::Transform(servo_cp_command);
 }
 
 
+
+/**
+ * @brief      Gets the motion start time.
+ *
+ * @return     The start time.
+ */
 time_t CRTK_motion::get_start_time(){
   return motion_start_time;
 }
 
+
+
+/**
+ * @brief      Gets the start transformation.
+ *
+ * @return     The start tf.
+ */
 tf::Transform CRTK_motion::get_start_tf(){
   return motion_start_tf;
 }
 
 
+
+/**
+ * @brief      Sends a servo jr motion command.
+ *
+ * @param      jpos_d  The desired jpos
+ *
+ * @return     success 0, fail -1
+ */
 char CRTK_motion::send_servo_jr(float jpos_d[MAX_JOINTS]){
 
   float step_angle;
@@ -833,6 +1018,15 @@ char CRTK_motion::send_servo_jr(float jpos_d[MAX_JOINTS]){
   return 0;
 }
 
+
+
+/**
+ * @brief      Sends a servo jp motion command.
+ *
+ * @param      jpos_d  The desired jpos
+ *
+ * @return     0
+ */
 char CRTK_motion::send_servo_jp(float jpos_d[MAX_JOINTS]){
 
   // send command
@@ -843,6 +1037,14 @@ char CRTK_motion::send_servo_jp(float jpos_d[MAX_JOINTS]){
 }
 
 
+
+/**
+ * @brief      Sends a servo jr grasp.
+ *
+ * @param[in]  step_angle  The step angle
+ *
+ * @return     success 0, fail -1
+ */
 char CRTK_motion::send_servo_jr_grasp(float step_angle){
 
   
@@ -858,59 +1060,141 @@ char CRTK_motion::send_servo_jr_grasp(float step_angle){
 }
 
 
+
+/**
+ * @brief      resets the servo_jr updated flag
+ */
 void CRTK_motion::reset_servo_jr_updated(){
   servo_jr_updated = 0;
 }
 
+
+
+/**
+ * @brief      Resets the servo_jp updated flag
+ */
 void CRTK_motion::reset_servo_jp_updated(){
   servo_jp_updated = 0;
 }
 
+
+/**
+ * @brief      Resets the servo_jr grasper updated flag
+ */
 void CRTK_motion::reset_servo_jr_grasp_updated(){
   servo_jr_grasp_updated = 0;
 }
 
+
+
+/**
+ * @brief      Resets servo jp grasper updated flag
+ */
 void CRTK_motion::reset_servo_jp_grasp_updated(){
   servo_jp_grasp_updated = 0;
 }
 
+
+
+/**
+ * @brief      Gets the servo jr updated flag.
+ *
+ * @return     The servo jr updated.
+ */
 char CRTK_motion::get_servo_jr_updated(){
   return servo_jr_updated;
 }
 
 
+/**
+ * @brief      Gets the servo jp updated flag.
+ *
+ * @return     The servo jp updated.
+ */
 char CRTK_motion::get_servo_jp_updated(){
   return servo_jp_updated;
 }
 
 
+
+/**
+ * @brief      Gets the servo jr grasper updated flag.
+ *
+ * @return     The servo jr grasp updated.
+ */
 char CRTK_motion::get_servo_jr_grasp_updated(){
   return servo_jr_grasp_updated;
 }
 
+
+
+/**
+ * @brief      Gets the servo jp grasper updated.
+ *
+ * @return     The servo jp grasp updated.
+ */
 char CRTK_motion::get_servo_jp_grasp_updated(){
   return servo_jp_grasp_updated;
 }
 
+
+
+/**
+ * @brief      Gets the servo jr grasper command.
+ *
+ * @return     The servo jr grasper command.
+ */
 float CRTK_motion::get_servo_jr_grasp_command(){
   return servo_jr_grasp_command;
 }
 
+
+
+/**
+ * @brief      Gets the servo jp grasper command.
+ *
+ * @return     The servo jp grasper command.
+ */
 float CRTK_motion::get_servo_jp_grasp_command(){
   return servo_jp_grasp_command;
 }
 
 
+
+/**
+ * @brief      Gets the servo jr command.
+ *
+ * @param      out     The output jr command array
+ * @param[in]  length  The length
+ */
 void CRTK_motion::get_servo_jr_command(float* out, int length){
   for(int i=0;i<length;i++)
    out[i] = servo_jr_command[i];
 }
 
+
+
+/**
+ * @brief      Gets the servo jp command.
+ *
+ * @param      out     The out jp command array
+ * @param[in]  length  The length
+ */
 void CRTK_motion::get_servo_jp_command(float* out, int length){
   for(int i=0;i<length;i++)
    out[i] = servo_jp_command[i];
 }
 
+
+
+/**
+ * @brief      Sets the home position.
+ *
+ * @param[in]  q_in  The quarter in
+ * @param[in]  v_in  The v in
+ *
+ * @return     success
+ */
 char CRTK_motion::set_home_pos(tf::Quaternion q_in, tf::Vector3 v_in){
   home_pos.setRotation(q_in);
   home_pos.setOrigin(v_in);
@@ -918,6 +1202,16 @@ char CRTK_motion::set_home_pos(tf::Quaternion q_in, tf::Vector3 v_in){
   return 1;
 }
 
+
+
+/**
+ * @brief      Sets the home jpos.
+ *
+ * @param      in      input home jpos array
+ * @param[in]  length  The length
+ *
+ * @return     success
+ */
 char CRTK_motion::set_home_jpos(float* in, int length=MAX_JOINTS)
 {
   for(int i=0;i<length;i++)
@@ -929,12 +1223,25 @@ char CRTK_motion::set_home_jpos(float* in, int length=MAX_JOINTS)
 }
 
 
+
+/**
+ * @brief      Gets the home position.
+ *
+ * @return     The home position.
+ */
 tf::Transform  CRTK_motion::get_home_pos(){
   if(!home_pos_set) ROS_ERROR("HOME POS NOT SET DON'T GO THERE, THERE BE DRAGONS AND BROKEN CABLES!");
   return home_pos;
 }
 
 
+
+/**
+ * @brief      Gets the home jpos output array.
+ *
+ * @param      out     The output home jpos
+ * @param[in]  length  The length
+ */
 void CRTK_motion::get_home_jpos(float* out, int length)
 {
 

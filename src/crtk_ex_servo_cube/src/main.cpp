@@ -58,10 +58,15 @@ tf::Vector3 vec_y(0,1,0);
 tf::Vector3 vec_z(0,0,1);
 
 
-/**
- * This tutorial demonstrates simple sending of messages over the ROS system.
- */
 
+/**
+ * @brief      The main function
+ *
+ * @param[in]  argc  The argc
+ * @param      argv  The argv
+ *
+ * @return     0
+ */
 int main(int argc, char **argv)
 {
 
@@ -87,12 +92,16 @@ int main(int argc, char **argv)
 }
 
 
-
-// 3
-// 2-2 Relative (command: servo_cr) Cube tracing Test
-// (functionality) Trace a cube
-//    Pass: Ask user!
-
+/**
+ * @brief      The function executes a random cube tracing example
+ *             CRTK Command:     servo_cr 
+ *             Passing criteria: ask user
+ *
+ * @param      robot         The robot
+ * @param[in]  current_time  The current system time
+ *
+ * @return     0
+ */
 int run_cube(CRTK_robot *robot, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
@@ -201,7 +210,16 @@ int run_cube(CRTK_robot *robot, time_t current_time){
 }
 
 
-//todo, check prev dir
+
+/**
+ * @brief      The function decides the next robot motion direction randomly
+ *
+ * @param      curr_vertex  The curr vertex
+ * @param      move_vec     The move vector
+ * @param      prev_axis    The previous axis
+ *
+ * @return     success
+ */
 char rand_cube_dir(char *curr_vertex, tf::Vector3 *move_vec, CRTK_axis *prev_axis){
   char choice = *prev_axis;
   while ((CRTK_axis)choice == *prev_axis){
