@@ -31,8 +31,15 @@
 #include <cmath>
 
 
-// if !crtk_state_check(CRTK_DISABLED, robot_state.get_state(), &current_step) return -1;
-
+/**
+ * @brief      Checks if the robot transitioned to the desired state
+ *
+ * @param[in]  desired       The desired robot state
+ * @param[in]  actual        The actual robot state
+ * @param[in]  current_step  The current step
+ *
+ * @return     success 1, fail -1
+ */
 int crtk_state_check(CRTK_robot_state_enum desired, CRTK_robot_state_enum actual, int current_step){
   if(actual == desired){
     return 1;
@@ -41,7 +48,18 @@ int crtk_state_check(CRTK_robot_state_enum desired, CRTK_robot_state_enum actual
   }
 }
 
-//assumes that we're testing MAX_JOINTS number of joints
+/**
+ * @brief      This function checks each robot joint to move beyond the pos and vel threshold
+ *             assuming that we're testing MAX_JOINTS number of joints
+ *
+ * @param      robot         The robot class object
+ * @param[in]  pos_thresh    The position thresh
+ * @param[in]  vel_thresh    The velocity thresh
+ * @param[in]  current_time  The current time
+ * @param[in]  check_time    The expected time to finish the motion
+ *
+ * @return     success 1, fail -1
+ */
 int check_joint_motion_and_vel(CRTK_robot* robot, float pos_thresh, float vel_thresh, long current_time, int check_time){
   static int start = 1;
   double scale;
@@ -56,9 +74,6 @@ int check_joint_motion_and_vel(CRTK_robot* robot, float pos_thresh, float vel_th
     robot->arm[1].get_measured_js_pos(start_pos2, MAX_JOINTS);
     start_time = current_time;
 
-    // ROS_INFO("start_pos1-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", start_pos1[0],start_pos1[1],start_pos1[2],start_pos1[3],start_pos1[4],start_pos1[5],start_pos1[6]);
-    // ROS_INFO("start_pos2-- %3f, %3f, %3f, %3f, %3f, %3f, %3f", start_pos2[0],start_pos2[1],start_pos2[2],start_pos2[3],start_pos2[4],start_pos2[5],start_pos2[6]);
-    // ROS_INFO(" ");
     ROS_INFO(" pos_thresh = %f",fabs(pos_thresh));
     ROS_INFO(" vel_thresh = %f",fabs(vel_thresh));
     for(int i=0;i<MAX_JOINTS;i++){
@@ -133,6 +148,16 @@ int check_joint_motion_and_vel(CRTK_robot* robot, float pos_thresh, float vel_th
 
 }
 
+
+
+/**
+ * @brief      Checks robot completion status
+ *
+ * @param[in]  status        The completion status
+ * @param      current_step  The current step
+ *
+ * @return     success > 0, fail otherwise
+ */
 int step_success(int status, int* current_step){
   int out = *current_step;
   if (status == -1){
@@ -155,6 +180,14 @@ int step_success(int status, int* current_step){
 }
 
 
+
+/**
+ * @brief      This function checks if all joints of a robot pass the joint_motion_and_vel test
+ *
+ * @param      in    input completion flag array for all joints
+ *
+ * @return     The number of joints pass the test
+ */
 int done_sum(int in[MAX_JOINTS]){
   int done_sum = 0;
   for(int i=0; i<MAX_JOINTS;i++){
@@ -163,7 +196,19 @@ int done_sum(int in[MAX_JOINTS]){
   return done_sum;
 }
 
-// do this one arm at a time!! (non parallel)
+
+/**
+ * @brief      Checks if the robot moved in the specified direction for a desired distance
+ *             We are doing the check one arm at a time, not parallel
+ *
+ * @param      arm           The arm index
+ * @param[in]  axis          The axis
+ * @param[in]  dist          The distance
+ * @param[in]  check_time    The check time
+ * @param[in]  current_time  The current time
+ *
+ * @return     success > 0, fail otherwise
+ */
 int check_movement_direction(CRTK_motion* arm, CRTK_axis axis, float dist, int check_time, long current_time){
   static int start = 1;
   static float start_pos, max_dist;
@@ -215,15 +260,16 @@ int check_movement_direction(CRTK_motion* arm, CRTK_axis axis, float dist, int c
   return 0;
 }
 
+
 /**
  * @brief      Check for any rotation not around any particular axis
  *
- * @param      arm           The arm
+ * @param      arm           The arm index
  * @param[in]  angle         The angle
  * @param[in]  check_time    The check time
  * @param[in]  current_time  The current time
  *
- * @return     { description_of_the_return_value }
+ * @return     success > 0, fail otherwise
  */
 int check_movement_rotation(CRTK_motion* arm, float angle, int check_time, long current_time, tf::Transform start_pos){
   static int start = 1;
@@ -282,6 +328,16 @@ int check_movement_rotation(CRTK_motion* arm, float angle, int check_time, long 
   return 0;
 }
 
+
+
+/**
+ * @brief      returns the value of the "axis" entry of a Vector3
+ *
+ * @param[in]  vec   The vector
+ * @param[in]  axis  The axis
+ *
+ * @return     the vector entry value
+ */
 float axis_value(tf::Vector3 vec, CRTK_axis axis){
   if(axis == CRTK_X){
     return vec.x();
@@ -298,6 +354,18 @@ float axis_value(tf::Vector3 vec, CRTK_axis axis){
   }
 }
 
+
+
+/**
+ * @brief      Checks if the robot moves along the specified Cartesian direction for a desired distance
+ *
+ * @param      arm        The arm index
+ * @param[in]  start_pos  The start position
+ * @param[in]  axis       The axis
+ * @param[in]  dist       The distance
+ *
+ * @return     success > 0, fail otherwise
+ */
 int check_movement_distance(CRTK_motion* arm,tf::Transform start_pos, CRTK_axis axis, float dist){
   tf::Transform curr_pos = arm->get_measured_cp();
   float start_val = axis_value(start_pos.getOrigin(),axis);
@@ -328,7 +396,17 @@ char front = 0b100;
 char left  = 0b010;
 char lower = 0b001;
 
-//todo, check prev dir
+
+
+/**
+ * @brief      Randomly chooses the next motion direction for the robot in cube tracing example
+ *
+ * @param      curr_vertex  The curr vertex
+ * @param      move_vec     The move vector
+ * @param      prev_axis    The previous axis
+ *
+ * @return     success
+ */
 char rand_cube_dir(char *curr_vertex, tf::Vector3 *move_vec, CRTK_axis *prev_axis){
   char choice = *prev_axis;
   while ((CRTK_axis)choice == *prev_axis){

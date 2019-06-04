@@ -3,6 +3,7 @@
 #ifndef _STATE_TESTS_
 #define _STATE_TESTS_
 
+// main testing loop for all test units
 int state_testing(CRTK_robot_state, time_t);
 
 // I.    {disabled, ~homed} + enable [prompt for button press] → {enabled / init}

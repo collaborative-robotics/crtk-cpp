@@ -50,6 +50,16 @@ tf::Vector3 vec_z(0,0,1);
 
 static int start_test = 1;
 
+
+
+/**
+ * @brief      This function loops through all the crtk tests
+ *
+ * @param      robot         The robot object
+ * @param[in]  current_time  The current time
+ *
+ * @return     errors
+ */
 int servo_testing( CRTK_robot* robot, time_t current_time){
   static time_t start_time = current_time;
   static int current_test = 0;
@@ -122,13 +132,19 @@ int servo_testing( CRTK_robot* robot, time_t current_time){
 }
 
 
-// 1 Motion measured query testing
-//    1-1 (measured_js functionality) Move all joints in series manually.
-//      Pass: Check that each joint has moved.
-//      Pass: Check that each joint velocity has a non-zero value.
-//    1-2 (measured_cp functionality) Move tool to the right manually.
-//      Pass: Check that the correct axis has been mostly moved in.
-
+/**
+ * @brief      The test function: 1 Motion measured query testing
+ *             1-1 (measured_js functionality) Move all joints in series manually.
+ *                 Pass: Check that each joint has moved.
+ *                 Pass: Check that each joint velocity has a non-zero value.
+ *             1-2 (measured_cp functionality) Move tool to the right manually.
+ *                 Pass: Check that the correct axis has been mostly moved in.
+ *
+ * @param      robot         The robot
+ * @param[in]  current_time  The current time
+ *
+ * @return     success
+ */
 int test_1(CRTK_robot *robot, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
@@ -234,15 +250,6 @@ int test_1(CRTK_robot *robot, time_t current_time){
         return 1;
       break;
     }
-    // default:
-    // {
-    //   if(out == 1)
-    //     return 1;
-    //   else
-    //     return -100;
-    //   break;
-    // }
-
 
   }
   if(out < 0) return out;

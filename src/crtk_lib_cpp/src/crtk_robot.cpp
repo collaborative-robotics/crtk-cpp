@@ -62,6 +62,14 @@ CRTK_robot::CRTK_robot(ros::NodeHandle n):state(n){
   #endif
 }
 
+
+
+/**
+ * @brief      Initialize ROS: publisher/subscriber relation setup
+ *
+ * @param[in]  n     ROS node handler
+ * @return           success
+ */
 bool CRTK_robot::init_ros(ros::NodeHandle n){
 
   sub_measured_cp1 = n.subscribe("arm1/measured_cp", 1, &CRTK_robot::crtk_measured_cp_arm1_cb,this);
@@ -86,10 +94,24 @@ bool CRTK_robot::init_ros(ros::NodeHandle n){
 
 }
 
+
+
+/**
+ * @brief      Sets the state.
+ *
+ * @param      new_state  The new robot state class object
+ */
 void CRTK_robot::set_state(CRTK_robot_state *new_state){
   state = *new_state;
 }
 
+
+
+/**
+ * @brief      arm1 callback function for measured_cp
+ *
+ * @param[in]  msg   The message
+ */
 void CRTK_robot::crtk_measured_cp_arm1_cb(geometry_msgs::TransformStamped msg){
   tf::Transform in;
   tf::transformMsgToTF(msg.transform, in);
@@ -97,6 +119,13 @@ void CRTK_robot::crtk_measured_cp_arm1_cb(geometry_msgs::TransformStamped msg){
 
 }
 
+
+
+/**
+ * @brief      arm2 callback function for measured_cp
+ *
+ * @param[in]  msg   The message
+ */
 void CRTK_robot::crtk_measured_cp_arm2_cb(geometry_msgs::TransformStamped msg){
   tf::Transform in;
   tf::transformMsgToTF(msg.transform, in);
@@ -104,6 +133,12 @@ void CRTK_robot::crtk_measured_cp_arm2_cb(geometry_msgs::TransformStamped msg){
 }
 
 
+
+/**
+ * @brief      arm1 callback function for measured_js
+ *
+ * @param[in]  msg   The message
+ */
 void CRTK_robot::crtk_measured_js_arm1_cb(sensor_msgs::JointState msg){
 
   int size = msg.position.size();
@@ -125,6 +160,12 @@ void CRTK_robot::crtk_measured_js_arm1_cb(sensor_msgs::JointState msg){
   arm[0].set_measured_js_eff(tmp_eff,MAX_JOINTS); 
 }
 
+
+/**
+ * @brief      arm2 callback function for measured_js
+ *
+ * @param[in]  msg   The message
+ */
 void CRTK_robot::crtk_measured_js_arm2_cb(sensor_msgs::JointState msg){
 
   int size = msg.position.size();
@@ -147,6 +188,10 @@ void CRTK_robot::crtk_measured_js_arm2_cb(sensor_msgs::JointState msg){
 }
 
 
+
+/**
+ * @brief      Checks all types of motion commands to publish to the robot.
+ */
 void CRTK_robot::check_motion_commands_to_publish(){
 
   for(int i=0;i<2;i++){
@@ -175,10 +220,22 @@ void CRTK_robot::check_motion_commands_to_publish(){
   }
 }
 
+
+
+/**
+ * @brief      Initiate CRTK command publishing
+ */
 void CRTK_robot::run(){
   check_motion_commands_to_publish(); 
 }
 
+
+
+/**
+ * @brief      publish servo_cr_command
+ *
+ * @param[in]  i     arm index
+ */
 void CRTK_robot::publish_servo_cr(char i){
   geometry_msgs::TransformStamped msg;
 
@@ -202,6 +259,12 @@ void CRTK_robot::publish_servo_cr(char i){
 }
 
 
+
+/**
+ * @brief      publish servo_cp command
+ *
+ * @param[in]  i     arm index
+ */
 void CRTK_robot::publish_servo_cp(char i){
   geometry_msgs::TransformStamped msg;
 
@@ -224,6 +287,13 @@ void CRTK_robot::publish_servo_cp(char i){
   } 
 }
 
+
+
+/**
+ * @brief      publish servo_jr grasper command
+ *
+ * @param[in]  i     arm index
+ */
 void CRTK_robot::publish_servo_jr_grasp(char i){
   sensor_msgs::JointState msg;
 
@@ -247,6 +317,12 @@ void CRTK_robot::publish_servo_jr_grasp(char i){
 }
 
 
+
+/**
+ * @brief      publish servo_jr command
+ *
+ * @param[in]  i     arm index
+ */
 void CRTK_robot::publish_servo_jr(char i){
   
   sensor_msgs::JointState msg;
@@ -257,8 +333,6 @@ void CRTK_robot::publish_servo_jr(char i){
 
   msg.header.stamp = msg.header.stamp.now();
   float cmd[MAX_JOINTS];
-  // static int ount;
-  // if()
 
   arm[i].get_servo_jr_command(cmd, MAX_JOINTS); 
 
@@ -278,9 +352,9 @@ void CRTK_robot::publish_servo_jr(char i){
 
 
 /**
- * @brief      publish servo jp grasp command
+ * @brief      publish servo jp grasper command
  *
- * @param[in]  i     { parameter_description }
+ * @param[in]  i     arm index
  */
 void CRTK_robot::publish_servo_jp_grasp(char i){
   sensor_msgs::JointState msg;
@@ -309,7 +383,7 @@ void CRTK_robot::publish_servo_jp_grasp(char i){
 /**
  * @brief      publish servo jp command
  *
- * @param[in]  i     { parameter_description }
+ * @param[in]  i     arm index
  */
 void CRTK_robot::publish_servo_jp(char i){
   
@@ -339,6 +413,16 @@ void CRTK_robot::publish_servo_jp(char i){
   } 
 }
 
+
+
+/**
+ * @brief      The main function
+ *
+ * @param[in]  argc  The argc
+ * @param      argv  The argv
+ *
+ * @return     0
+ */
 int main(int argc, char **argv){
 
   ros::init(argc, argv, "crtk_robot_library_wtf");  

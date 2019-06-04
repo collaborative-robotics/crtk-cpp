@@ -58,6 +58,15 @@ ros::Publisher command_pub;
  * This tutorial demonstrates simple sending of messages over the ROS system.
  */
 
+
+/**
+ * @brief      The main function that executes keyboard alternative for foot pedal up and down
+ *
+ * @param[in]  argc  The argc
+ * @param      argv  The argv
+ *
+ * @return     0
+ */
 int main(int argc, char **argv)
 {
 
@@ -91,6 +100,7 @@ int main(int argc, char **argv)
   return 0;
 }
 
+
 /**
  * @brief      checks terminal for 'e' or 'd' 
  *
@@ -109,6 +119,7 @@ int foot_pedal(){
   else return 0;
 
 }
+
 
 /**
  * @brief      publishes CRTK commands for the given foot command

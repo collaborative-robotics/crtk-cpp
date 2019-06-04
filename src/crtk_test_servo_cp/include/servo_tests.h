@@ -36,7 +36,7 @@
 #define _SERVO_TESTS_
 
 
-
+// This function loops through all the crtk tests
 int servo_testing(CRTK_robot*, time_t);
 
 // 3-1 Absolute (command: servo_cp) Axis motion Test
@@ -54,9 +54,5 @@ int test_3_1(CRTK_robot *, time_t);
 int test_3_2(CRTK_robot *, time_t);
 
 
-// 3-3 Go home (command: servo_cp) 
-// (functionality) move back to home pose (both arms)
-//    Pass: Ask user
-int test_3_3(CRTK_robot *, time_t);
 
 #endif

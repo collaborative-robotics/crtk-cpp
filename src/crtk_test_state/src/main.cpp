@@ -49,6 +49,16 @@ using namespace std;
  * The main function creates a robot state and initiates it before running a loop for the
  * state testing.
  */
+
+
+/**
+ * @brief      The main function
+ *
+ * @param[in]  argc  The argc
+ * @param      argv  The argv
+ *
+ * @return     0
+ */
 int main(int argc, char **argv)
 {
 
