@@ -26,7 +26,7 @@ int state_testing(CRTK_robot_state robot_state, time_t current_time){
   static int current_test = 0;
   static int finished = 0;
   static int errors = 0;
-  
+
 
   int test_status;
   int num_of_tests = 8; //update when adding or removing tests
@@ -92,7 +92,7 @@ int state_testing(CRTK_robot_state robot_state, time_t current_time){
     case 3:
     {
         // VI-2.    {paused, p_up} + disable → {disabled / e-stop}
-        // VIII-2.    {disabled, homed} + unhome → {disabled, ~homed / e-stop} 
+        // VIII-2.    {disabled, homed} + unhome → {disabled, ~homed / e-stop}
         test_status = test_3(robot_state, current_time);
         if (test_status < 0) {
           errors += 1;
@@ -454,7 +454,7 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
 
 
 /**
- * @brief      The test function 3: VI-2.    {paused, p_up} + disable → {disabled / e-stop} 
+ * @brief      The test function 3: VI-2.    {paused, p_up} + disable → {disabled / e-stop}
  *                                  VIII-2.    {disabled, homed} + unhome → {disabled, ~homed / e-stop} (starting at case 8)
  *
  * @param[in]  robot_state   The robot state
@@ -612,7 +612,7 @@ int test_3(CRTK_robot_state robot_state, time_t current_time){
 
 
 /**
- * @brief      The test function 4: IV-1.    {enabled, homing} + pause → {disabled / e-stop} 
+ * @brief      The test function 4: IV-1.    {enabled, homing} + pause → {disabled / e-stop}
  *                                  VIII-1.  {disabled, ~homed} + unhome → {disabled, ~homed / e-stop}
  *
  * @param[in]  robot_state   The robot state
@@ -787,7 +787,7 @@ int test_4(CRTK_robot_state robot_state, time_t current_time){
 
 
 /**
- * @brief      The test function 5: III-1.    {enabled, homing} + disable → {disabled / e-stop} 
+ * @brief      The test function 5: III-1.    {enabled, homing} + disable → {disabled / e-stop}
  *                                  III-2.    {enabled, busy} + disable → {disabled / e-stop}
  *
  * @param[in]  robot_state   The robot state
@@ -816,7 +816,7 @@ int test_5(CRTK_robot_state robot_state, time_t current_time){
       getline(std::cin,start);
       if(start == ""){
         current_step ++;
-      } 
+      }
       break;
     }
     case 2:
@@ -919,7 +919,7 @@ int test_5(CRTK_robot_state robot_state, time_t current_time){
 
 
 /**
- * @brief      The test function 6: VIII-3.    {enabled, homing} + unhome → {disabled, ~homed / e-stop} 
+ * @brief      The test function 6: VIII-3.    {enabled, homing} + unhome → {disabled, ~homed / e-stop}
  *                                  VIII-4.    {enabled, busy} + unhome → {disabled, ~homed / e-stop}
  *
  * @param[in]  robot_state   The robot state
