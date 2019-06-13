@@ -333,6 +333,7 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
   static time_t pause_start;
   string start = "0";
   static int start_flag = 0;
+  static int cycle_count = 0;
 
   switch(current_step)
   {
@@ -343,7 +344,6 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
         ROS_INFO("Please home Robot and press 'Enter'.");
         start_flag = 1;
       }
-      // cin.clear();
       getline(std::cin,start);
       if(start == ""){
         current_step = 1;
@@ -353,44 +353,65 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
 
     case 1:
     {
-      // (1) check paused
+      // (1) check paused, set to paused
       if (robot_state.get_paused()){
         current_step ++;
+        cycle_count = 0;
       }
       else{
-        current_step = -100;
-        return -1;
+        if(cycle_count<10)
+        {
+          CRTK_robot_command command = CRTK_PAUSE;
+          robot_state.crtk_command_pb(command);
+          cycle_count ++;
+        }
+        else
+        {
+          current_step = -100;
+          return -1;
+        }
+        
       }
       break;
     }
 
     case 2:
     {
-      // (2) check homed
-      if (robot_state.get_homed()){
-        current_step ++;
+      // (2) send resume command
+      if(!robot_state.get_enabled())
+      {
+        if(cycle_count<10)
+        {
+          CRTK_robot_command command = CRTK_RESUME;
+          robot_state.crtk_command_pb(command);
+          cycle_count ++;
+        }
+        else
+        {
+          current_step = -100;
+          return -2;
+        }
+        
       }
-      else{
-        current_step = -100;
-        return -2;
+      else
+      {
+        pause_start = current_time;
+        current_step ++;
+        start_flag = 0;
       }
       break;
+      
     }
 
     case 3:
     {
-      // (3) send resume command
-      CRTK_robot_command command = CRTK_RESUME;
-      robot_state.crtk_command_pb(command);
-      current_step ++;
-      pause_start = current_time;
-      break;
-    }
-
-    case 4:
-    {
-      // (4) wait for a bit
-      if (current_time - pause_start >= 3){
+      // (3) wait for a bit for user to make robot busy
+      if(!start_flag){
+        ROS_INFO("Please make robot busy then press 'Enter'.");
+        start_flag = 1;
+      }
+      getline(std::cin,start);
+      if(start == ""){
         current_step ++;
       }
       break;
@@ -398,8 +419,8 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
 
     case 5:
     {
-      // (5) check if crtk == enabled
-      if (robot_state.get_enabled()){
+      // (5) check if crtk == is_busy
+      if (robot_state.get_busy()){
         current_step ++;
       }
       else{
@@ -415,13 +436,14 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
       CRTK_robot_command command = CRTK_PAUSE;
       robot_state.crtk_command_pb(command);
       current_step ++;
+      pause_start = current_time;
       break;
     }
 
     case 7:
     {
       // (7) wait for a bit
-      if (current_time - pause_start >= 1){
+      if (current_time - pause_start >= 3){
         current_step ++;
       }
       break;
@@ -431,7 +453,6 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
     {
       // (8) check if crtk == paused
       if (robot_state.get_paused()){
-        current_step ++;
         return 1; // all steps passed
       }
       else{
@@ -463,16 +484,30 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
  * @return      test status (failure (negative value of failing step), running (0), success(1))
  */
 int test_3(CRTK_robot_state robot_state, time_t current_time){
-  static int current_step = 1;
+  static int current_step = 0;
   static time_t pause_start;
+  static char start_flag = 0;
   string start = "0";
 
   switch(current_step)
   {
+    case 0:
+    {
+      if(!start_flag){
+        ROS_INFO("======================= Starting test_3 ======================= ");
+        ROS_INFO("Please pause Robot and press 'Enter'.");
+        start_flag = 1;
+      }
+      getline(std::cin,start);
+      if(start == ""){
+        current_step = 1;
+      }
+      break;
+    }
     case 1:
     {
       // (1) check paused
-      ROS_INFO("======================= Starting test_3 ======================= ");
+      ROS_INFO("Checking if robot is paused?");
       if (robot_state.get_paused()){
         current_step ++;
       }

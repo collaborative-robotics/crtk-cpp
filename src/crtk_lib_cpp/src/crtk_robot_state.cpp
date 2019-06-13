@@ -161,7 +161,7 @@ void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
 
     case CRTK_HOME:
       msg_command.data = "home";
-      ROS_INFO("Sent HOME."); 
+      ROS_INFO("Sent HOME: May need to press start button."); 
       break;
 
     default:
