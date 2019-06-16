@@ -36,15 +36,8 @@
 #define MM_TO_M   * 0.001
 #define LOOP_RATE 999        // Hz (TODO increase to 1000Hz? NOOOOOOO! will fail for _cp)
 
-#define RAVEN
-//#define DVRK
 
-#ifdef RAVEN
-#define MAX_JOINTS 7
-#elif  
 #define MAX_JOINTS 15
-#endif
-
 
 
 #define DEG_TO_RAD * M_PI/180

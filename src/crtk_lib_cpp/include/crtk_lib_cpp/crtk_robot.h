@@ -46,44 +46,34 @@ class CRTK_robot{
 
   public:
     CRTK_robot_state state;
-    CRTK_motion arm[2];
+    CRTK_motion arm;
 
-    //CRTK_robot(){};
     CRTK_robot(ros::NodeHandle n);
     ~CRTK_robot(){};
     bool init_ros(ros::NodeHandle);
-    void crtk_measured_cp_arm1_cb(geometry_msgs::TransformStamped);
-    void crtk_measured_cp_arm2_cb(geometry_msgs::TransformStamped);
-    void crtk_measured_js_arm1_cb(sensor_msgs::JointState);
-    void crtk_measured_js_arm2_cb(sensor_msgs::JointState);
+    void crtk_measured_cp_arm_cb(geometry_msgs::TransformStamped);
+    void crtk_measured_js_arm_cb(sensor_msgs::JointState);
     void set_state(CRTK_robot_state *new_state);
 
     void check_motion_commands_to_publish();
-    void publish_servo_cr(char);
-    void publish_servo_cp(char);
-    void publish_servo_jr_grasp(char);
-    void publish_servo_jr(char);
-    void publish_servo_jp_grasp(char);
-    void publish_servo_jp(char);
+    void publish_servo_cr();
+    void publish_servo_cp();
+    void publish_servo_jr_grasp();
+    void publish_servo_jr();
+    void publish_servo_jp_grasp();
+    void publish_servo_jp();
     void run();
   private:
-    ros::Subscriber sub_measured_cp1;
-    ros::Subscriber sub_measured_cp2;
-    ros::Subscriber sub_measured_js1;
-    ros::Subscriber sub_measured_js2;   
+    unsigned int max_joints; // TODO: set it from config file
+    ros::Subscriber sub_measured_cp;
+    ros::Subscriber sub_measured_js; 
 
-    ros::Publisher pub_servo_cr1;
-    ros::Publisher pub_servo_cr2; 
-    ros::Publisher pub_servo_cp1;
-    ros::Publisher pub_servo_cp2; 
-    ros::Publisher pub_servo_jr1;
-    ros::Publisher pub_servo_jr2; 
-    ros::Publisher pub_servo_jp1;
-    ros::Publisher pub_servo_jp2; 
-    ros::Publisher pub_servo_jr_grasp1;
-    ros::Publisher pub_servo_jr_grasp2; 
-    ros::Publisher pub_servo_jp_grasp1;
-    ros::Publisher pub_servo_jp_grasp2; 
+    ros::Publisher pub_servo_cr;
+    ros::Publisher pub_servo_cp;
+    ros::Publisher pub_servo_jr;
+    ros::Publisher pub_servo_jp;
+    ros::Publisher pub_servo_jr_grasp;
+    ros::Publisher pub_servo_jp_grasp;
 };
 
 #endif
