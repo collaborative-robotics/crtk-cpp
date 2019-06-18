@@ -77,10 +77,10 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(LOOP_RATE); 
 
   ROS_INFO("!~~~~~~~~~~~~ Starting keyboard node ~~~~~~~~~~~");
-  ROS_INFO("Press 'Z' or 'R' twice to do a barrel roll");
+  ROS_INFO("Press 'e' for pedal up, 'd' for pedal down!");
 
   //init crtk command publishing
-  command_pub = n.advertise<crtk_msgs::StringStamped>("foot_pedal/crtk_command", 1);
+  command_pub = n.advertise<crtk_msgs::StringStamped>("crtk_footkey/state_command", 1);
 
   int count = 0;
   int foot = 0;
