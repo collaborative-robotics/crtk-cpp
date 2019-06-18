@@ -1,5 +1,5 @@
 /* Raven 2 Control - Control software for the Raven II robot
- * Copyright (C) 2005-2018  Andrew Lewis, Yun-Hsuan Su, Blake Hannaford, 
+ * Copyright (C) 2005-2018  Andrew Lewis, Yun-Hsuan Su, Blake Hannaford,
  * and the University of Washington BioRobotics Laboratory
  *
  * This file is part of Raven 2 Control.
@@ -73,8 +73,8 @@ int main(int argc, char **argv)
 
   //start ros node
   ros::init(argc, argv, "crtk_util_footkey");
-  static ros::NodeHandle n; 
-  ros::Rate loop_rate(LOOP_RATE); 
+  static ros::NodeHandle n;
+  ros::Rate loop_rate(LOOP_RATE);
 
   ROS_INFO("!~~~~~~~~~~~~ Starting keyboard node ~~~~~~~~~~~");
   ROS_INFO("Press 'e' for pedal up, 'd' for pedal down!");
@@ -102,19 +102,19 @@ int main(int argc, char **argv)
 
 
 /**
- * @brief      checks terminal for 'e' or 'd' 
+ * @brief      checks terminal for 'e' or 'd'
  *
  * @return     -1 for pedal down (d)
  *              0 for null or unsupported entry
  *              1 for pedal up
- *        
+ *
  */
 int foot_pedal(){
   int key_in;
 
   key_in = getkey();
 
-  if(key_in == 'd') return -1; 
+  if(key_in == 'd') return -1;
   else if(key_in == 'e') return 1;
   else return 0;
 
@@ -133,14 +133,14 @@ int pub_foot(int foot){
 
   if(foot == 1){
     //pub pedal up
-    msg_command.data = "pause";
-    ROS_INFO("Sent pause.");  
+    msg_command.string = "pause";
+    ROS_INFO("Sent pause.");
   }
 
   else if(foot == -1){
     //pub pedal down
-    msg_command.data = "resume";
-    ROS_INFO("Sent resume.");  
+    msg_command.string = "resume";
+    ROS_INFO("Sent resume.");
 
   } else return 0;
 

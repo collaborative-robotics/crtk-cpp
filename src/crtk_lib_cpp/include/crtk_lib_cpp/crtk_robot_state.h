@@ -1,5 +1,5 @@
 /* Raven 2 Control - Control software for the Raven II robot
- * Copyright (C) 2005-2018  Andrew Lewis, Yun-Hsuan Su, Blake Hannaford, 
+ * Copyright (C) 2005-2018  Andrew Lewis, Yun-Hsuan Su, Blake Hannaford,
  * and the University of Washington BioRobotics Laboratory
  *
  * This file is part of Raven 2 Control.
@@ -37,10 +37,10 @@
 #include <crtk_msgs/StringStamped.h>
 
 
-class CRTK_robot_state 
+class CRTK_robot_state
 {
  public:
-  
+
   // methods
   CRTK_robot_state();
   CRTK_robot_state(ros::NodeHandle n);
@@ -73,7 +73,7 @@ class CRTK_robot_state
   bool set_connected(bool);
 
   bool init_ros(ros::NodeHandle);
-  void crtk_state_cb(crtk_msgs::operating_state msg);
+  void operating_state_cb(crtk_msgs::operating_state msg);
   void crtk_command_pb(CRTK_robot_command);
 
   char state_char();

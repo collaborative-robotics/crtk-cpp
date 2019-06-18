@@ -1,5 +1,5 @@
 /* Raven 2 Control - Control software for the Raven II robot
- * Copyright (C) 2005-2018  Andrew Lewis, Yun-Hsuan Su, Blake Hannaford, 
+ * Copyright (C) 2005-2018  Andrew Lewis, Yun-Hsuan Su, Blake Hannaford,
  * and the University of Washington BioRobotics Laboratory
  *
  * This file is part of Raven 2 Control.
@@ -73,7 +73,7 @@ CRTK_robot_state::CRTK_robot_state(ros::NodeHandle n){
 bool CRTK_robot_state::init_ros(ros::NodeHandle n){
 
   pub = n.advertise<crtk_msgs::StringStamped>("state_command", 1);
-  sub = n.subscribe("crtk_state", 1, &CRTK_robot_state::crtk_state_cb,this);
+  sub = n.subscribe("operating_state", 1, &CRTK_robot_state::operating_state_cb,this);
 
   return true;
 }
@@ -84,7 +84,7 @@ bool CRTK_robot_state::init_ros(ros::NodeHandle n){
  *
  * @param[in]  msg   The message from ROS
  */
-void CRTK_robot_state::crtk_state_cb(crtk_msgs::operating_state msg){
+void CRTK_robot_state::operating_state_cb(crtk_msgs::operating_state msg){
 
   std::string state = msg.state;
 
@@ -127,7 +127,7 @@ void CRTK_robot_state::crtk_state_cb(crtk_msgs::operating_state msg){
  * @param[in]  command  The command
  */
 void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
-  
+
   static int count = 0;
   static crtk_msgs::StringStamped msg_command;
 
@@ -135,38 +135,38 @@ void CRTK_robot_state::crtk_command_pb(CRTK_robot_command command){
   switch(command)
   {
     case CRTK_ENABLE:
-      msg_command.data = "enable";
-      ROS_INFO("Sent ENABLE: May need to press start button."); 
+      msg_command.string = "enable";
+      ROS_INFO("Sent ENABLE: May need to press start button.");
       break;
 
     case CRTK_DISABLE:
-      msg_command.data = "disable";
-      ROS_INFO("Sent DISABLE."); 
+      msg_command.string = "disable";
+      ROS_INFO("Sent DISABLE.");
       break;
 
     case CRTK_PAUSE:
-      msg_command.data = "pause";
-      ROS_INFO("Sent PAUSE."); 
+      msg_command.string = "pause";
+      ROS_INFO("Sent PAUSE.");
       break;
 
     case CRTK_RESUME:
-      msg_command.data = "resume";
-      ROS_INFO("Sent RESUME."); 
+      msg_command.string = "resume";
+      ROS_INFO("Sent RESUME.");
       break;
 
     case CRTK_UNHOME:
-      msg_command.data = "unhome";
-      ROS_INFO("Sent UNHOME."); 
+      msg_command.string = "unhome";
+      ROS_INFO("Sent UNHOME.");
       break;
 
     case CRTK_HOME:
-      msg_command.data = "home";
+      msg_command.string = "home";
       ROS_INFO("Sent HOME: May need to press start button."); 
       break;
 
     default:
-      msg_command.data = "NULL";
-      ROS_INFO("Sent NULL."); 
+      msg_command.string = "NULL";
+      ROS_INFO("Sent NULL.");
       break;
   }
   msg_command.header.stamp = msg_command.header.stamp.now();
@@ -259,7 +259,7 @@ bool CRTK_robot_state::ready_logic(){
 bool CRTK_robot_state::set_disabled_state(){
   is_disabled   = 1;
   is_enabled    = 0;
-  is_paused     = 0;  
+  is_paused     = 0;
   is_fault      = 0;
 
   return 0;
@@ -275,7 +275,7 @@ bool CRTK_robot_state::set_disabled_state(){
 bool CRTK_robot_state::set_enabled_state(){
   is_disabled   = 0;
   is_enabled    = 1;
-  is_paused     = 0;  
+  is_paused     = 0;
   is_fault      = 0;
 
   return 0;
@@ -291,7 +291,7 @@ bool CRTK_robot_state::set_enabled_state(){
 bool CRTK_robot_state::set_paused_state(){
   is_disabled   = 0;
   is_enabled    = 0;
-  is_paused     = 1;  
+  is_paused     = 1;
   is_fault      = 0;
 
   return 0;
@@ -307,7 +307,7 @@ bool CRTK_robot_state::set_paused_state(){
 bool CRTK_robot_state::set_fault_state(){
   is_disabled   = 0;
   is_enabled    = 0;
-  is_paused     = 0;  
+  is_paused     = 0;
   is_fault      = 1;
 
   return 0;
