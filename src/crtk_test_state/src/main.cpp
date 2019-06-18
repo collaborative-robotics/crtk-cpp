@@ -44,6 +44,14 @@
 #include <string>
 using namespace std;
 
+#define RAVEN 1
+
+
+#ifdef RAVEN
+  int is_raven = RAVEN;
+#else 
+  int is_raven = 0;
+#endif
 
 /**
  * The main function creates a robot state and initiates it before running a loop for the

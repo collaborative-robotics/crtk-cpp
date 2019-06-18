@@ -10,6 +10,7 @@
 
 using namespace std;
 
+extern int is_raven;
 int starting_test = 1; //change here to skip ahead
 
 
@@ -277,6 +278,8 @@ int test_1(CRTK_robot_state robot_state, time_t current_time){
     case 4:
     {
       // (4) prompt button press
+      CRTK_robot_command command = CRTK_HOME;
+      robot_state.crtk_command_pb(command);
       ROS_INFO("Robot should be enabled within 10 secs!");
       pause_start = current_time;
       current_step ++;
@@ -417,22 +420,22 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
       break;
     }
 
-    case 5:
+    case 4:
     {
-      // (5) check if crtk == is_busy
+      // (4) check if crtk == is_busy
       if (robot_state.get_busy()){
         current_step ++;
       }
       else{
         current_step = -100;
-        return -5;
+        return -4;
       }
       break;
     }
 
-    case 6:
+    case 5:
     {
-      // (6) send pause command
+      // (5) send pause command
       CRTK_robot_command command = CRTK_PAUSE;
       robot_state.crtk_command_pb(command);
       current_step ++;
@@ -440,24 +443,24 @@ int test_2(CRTK_robot_state robot_state, time_t current_time){
       break;
     }
 
-    case 7:
+    case 6:
     {
-      // (7) wait for a bit
+      // (6) wait for a bit
       if (current_time - pause_start >= 3){
         current_step ++;
       }
       break;
     }
 
-    case 8:
+    case 7:
     {
-      // (8) check if crtk == paused
+      // (7) check if crtk == paused
       if (robot_state.get_paused()){
         return 1; // all steps passed
       }
       else{
         current_step = -100;
-        return -8;
+        return -7;
       }
       break;
     }
@@ -495,7 +498,7 @@ int test_3(CRTK_robot_state robot_state, time_t current_time){
     {
       if(!start_flag){
         ROS_INFO("======================= Starting test_3 ======================= ");
-        ROS_INFO("Please pause Robot and press 'Enter'.");
+        ROS_INFO("Please pause Robot (if it's not already) and press 'Enter'.");
         start_flag = 1;
       }
       getline(std::cin,start);
@@ -647,7 +650,8 @@ int test_3(CRTK_robot_state robot_state, time_t current_time){
 
 
 /**
- * @brief      The test function 4: IV-1.    {enabled, homing} + pause → {disabled / e-stop}
+ * @brief      The test function 4: IV-1.    {enabled, homing} + pause →   {paused}: for most other robots
+ *                                                                         {disabled / e-stop}: for Raven
  *                                  VIII-1.  {disabled, ~homed} + unhome → {disabled, ~homed / e-stop}
  *
  * @param[in]  robot_state   The robot state
@@ -683,6 +687,8 @@ int test_4(CRTK_robot_state robot_state, time_t current_time){
     {
       // (2) wait for initialization
       CRTK_robot_command command = CRTK_ENABLE;
+      robot_state.crtk_command_pb(command);
+      command = CRTK_HOME;
       robot_state.crtk_command_pb(command);
       current_step ++;
       pause_start = current_time;
@@ -742,14 +748,31 @@ int test_4(CRTK_robot_state robot_state, time_t current_time){
     }
     case 8:
     {
-      // (8) check if crtk == disabled
-      if (robot_state.get_disabled()){
-        current_step ++;
+      if(is_raven)
+      {
+        // (8) check if crtk == disabled
+        if (robot_state.get_disabled()){
+          current_step ++;
+        }
+        else{
+          current_step = -100;
+          return -8;
+        }
       }
-      else{
-        current_step = -100;
-        return -8;
+      else
+      {
+        // (8) check if crtk == paused
+        if (robot_state.get_paused()){
+          CRTK_robot_command command = CRTK_DISABLE;
+          robot_state.crtk_command_pb(command);
+          current_step ++;
+        }
+        else{
+          current_step = -100;
+          return -8;
+        }
       }
+      
       break;
     }
     case 9:
@@ -858,6 +881,8 @@ int test_5(CRTK_robot_state robot_state, time_t current_time){
     {
       // (2) wait for initialization
       CRTK_robot_command command = CRTK_ENABLE;
+      robot_state.crtk_command_pb(command);
+      command = CRTK_HOME;
       robot_state.crtk_command_pb(command);
       current_step ++;
       pause_start = current_time;
@@ -991,6 +1016,8 @@ int test_6(CRTK_robot_state robot_state, time_t current_time){
       // (2) wait for initialization
       CRTK_robot_command command = CRTK_ENABLE;
       robot_state.crtk_command_pb(command);
+      command = CRTK_HOME;
+      robot_state.crtk_command_pb(command);
       current_step ++;
       pause_start = current_time;
       break;
@@ -1122,6 +1149,8 @@ int test_7(CRTK_robot_state robot_state, time_t current_time){
       // (2) wait for initialization
       CRTK_robot_command command = CRTK_ENABLE;
       robot_state.crtk_command_pb(command);
+      command = CRTK_HOME;
+      robot_state.crtk_command_pb(command);
       current_step ++;
       pause_start = current_time;
       break;
@@ -1144,7 +1173,9 @@ int test_7(CRTK_robot_state robot_state, time_t current_time){
     case 4:
     {
       // (4) wait for robot to finish initializing
-      if (robot_state.get_paused()){
+      if (robot_state.get_homed()){
+        CRTK_robot_command command = CRTK_PAUSE;
+        robot_state.crtk_command_pb(command);
         current_step ++;
         ROS_INFO("Detected completion of robot homing.");
         pause_start = current_time;
@@ -1275,7 +1306,8 @@ int test_8(CRTK_robot_state robot_state, time_t current_time){
       // (3) send home command
       CRTK_robot_command command = CRTK_HOME;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Press and release E-stop. Then re-enable!");
+      if(is_raven)
+        ROS_INFO("Press and release E-stop. Then re-enable!");
       current_step ++;
       pause_start = current_time;
       break;
@@ -1342,7 +1374,9 @@ int test_8(CRTK_robot_state robot_state, time_t current_time){
     case 9:
     {
       // (9) wait for robot to finish initializing
-      if (robot_state.get_paused()){
+      if (robot_state.get_homed()){
+        CRTK_robot_command command = CRTK_PAUSE;
+        robot_state.crtk_command_pb(command);
         current_step ++;
         ROS_INFO("Detected completion of robot homing.");
         pause_start = current_time;
@@ -1397,7 +1431,8 @@ int test_8(CRTK_robot_state robot_state, time_t current_time){
       // (13) send home command
       CRTK_robot_command command = CRTK_HOME;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Press and release E-stop. Then re-enable!");
+      if(is_raven)
+        ROS_INFO("Press and release E-stop. Then re-enable!");
       current_step ++;
       pause_start = current_time;
       break;
@@ -1464,7 +1499,9 @@ int test_8(CRTK_robot_state robot_state, time_t current_time){
     case 19:
     {
       // (19) wait for robot to finish initializing
-      if (robot_state.get_paused()){
+      if (robot_state.get_homed()){
+        CRTK_robot_command command = CRTK_PAUSE;
+        robot_state.crtk_command_pb(command);
         current_step ++;
         ROS_INFO("Detected completion of robot homing.");
         pause_start = current_time;
@@ -1525,7 +1562,8 @@ int test_8(CRTK_robot_state robot_state, time_t current_time){
       // (24) send home command
       CRTK_robot_command command = CRTK_HOME;
       robot_state.crtk_command_pb(command);
-      ROS_INFO("Press and release E-stop. Then re-enable!");
+      if(is_raven)
+        ROS_INFO("Press and release E-stop. Then re-enable!");
       current_step ++;
       pause_start = current_time;
       break;
@@ -1592,7 +1630,9 @@ int test_8(CRTK_robot_state robot_state, time_t current_time){
     case 30:
     {
       // (30) wait for robot to finish initializing
-      if (robot_state.get_paused()){
+      if (robot_state.get_homed()){
+        CRTK_robot_command command = CRTK_PAUSE;
+        robot_state.crtk_command_pb(command);
         current_step ++;
         ROS_INFO("Detected completion of robot homing.");
         pause_start = current_time;
