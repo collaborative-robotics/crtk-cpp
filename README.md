@@ -3,8 +3,8 @@
 
 Build instructions:
 ----------
-1. Run this first: 'catkin_make --pkg crtk_msgs'
-2. Then run this: 'catkin_make'
+1. Run this first: <pre><code>catkin_make --pkg crtk_msgs</pre></code>
+2. Then run this: <pre><code>catkin_make</pre></code>
 
 
 Run instructions:
