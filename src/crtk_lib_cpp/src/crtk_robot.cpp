@@ -63,7 +63,7 @@ CRTK_robot::CRTK_robot(ros::NodeHandle n):state(n){
  */
 bool CRTK_robot::init_ros(ros::NodeHandle n){
   
-  string topic;
+  std::string topic;
   double tmp_max_joints;
 
   // Read ROS Parameter Values from yaml file

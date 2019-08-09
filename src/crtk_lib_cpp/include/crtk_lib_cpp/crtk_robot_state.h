@@ -37,7 +37,6 @@
 #include <crtk_msgs/operating_state.h>
 #include <crtk_msgs/StringStamped.h>
 
-using namespace std;
 
 class CRTK_robot_state
 {
@@ -85,7 +84,7 @@ class CRTK_robot_state
   ros::Subscriber sub;
 
 private:
-  string robot_name;
+  std::string robot_name;
 
   bool is_disabled;
   bool is_enabled;

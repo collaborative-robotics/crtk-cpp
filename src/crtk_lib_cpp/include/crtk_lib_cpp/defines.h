@@ -37,7 +37,7 @@
 #define LOOP_RATE 999        // Hz (TODO increase to 1000Hz? NOOOOOOO! will fail for _cp)
 
 
-#define MAX_JOINTS 15
+#define MAX_JOINTS 15 
 
 
 #define DEG_TO_RAD * M_PI/180

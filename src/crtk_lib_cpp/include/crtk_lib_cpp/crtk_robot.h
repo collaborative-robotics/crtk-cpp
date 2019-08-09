@@ -41,7 +41,6 @@
 #include "crtk_robot_state.h"
 #include "crtk_motion.h"
 
-using namespace std;
 // Max DOF 
 // extern const int MAX_JOINTS;
 
@@ -68,9 +67,9 @@ class CRTK_robot{
     void run();
   private:
     unsigned int max_joints; 
-    string robot_name;
-    string arm_name;
-    string grasper_name;
+    std::string robot_name;
+    std::string arm_name;
+    std::string grasper_name;
 
     ros::Subscriber sub_measured_cp;
     ros::Subscriber sub_measured_js; 

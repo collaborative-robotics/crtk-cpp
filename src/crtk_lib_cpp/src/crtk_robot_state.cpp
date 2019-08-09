@@ -72,7 +72,7 @@ CRTK_robot_state::CRTK_robot_state(ros::NodeHandle n){
  */
 bool CRTK_robot_state::init_ros(ros::NodeHandle n){
 
-  string topic;
+  std::string topic;
 
   // Read ROS Parameter Values from yaml file
   if(!n.getParam("/robot_namespace", robot_name))

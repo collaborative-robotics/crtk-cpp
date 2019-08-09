@@ -37,6 +37,7 @@
  * @brief      Constructs the CRTK_motion object.
  */
 CRTK_motion::CRTK_motion(){
+
   servo_cr_updated = 0;
   servo_cp_updated = 0;
   servo_jr_updated = 0;
