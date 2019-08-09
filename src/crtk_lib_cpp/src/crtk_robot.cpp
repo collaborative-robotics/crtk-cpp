@@ -62,15 +62,48 @@ CRTK_robot::CRTK_robot(ros::NodeHandle n):state(n){
  * @return           success
  */
 bool CRTK_robot::init_ros(ros::NodeHandle n){
+  
+  string topic;
+  double tmp_max_joints;
 
-  sub_measured_cp = n.subscribe("arm1/measured_cp", 1, &CRTK_robot::crtk_measured_cp_arm_cb,this);
-  sub_measured_js = n.subscribe("arm1/measured_js", 1, &CRTK_robot::crtk_measured_js_arm_cb,this);
-  pub_servo_cr = n.advertise<geometry_msgs::TransformStamped>("arm1/servo_cr", 1);
-  pub_servo_cp = n.advertise<geometry_msgs::TransformStamped>("arm1/servo_cp", 1);
-  pub_servo_jr = n.advertise<sensor_msgs::JointState>("arm1/servo_jr", 1);
-  pub_servo_jp = n.advertise<sensor_msgs::JointState>("arm1/servo_jp", 1);
-  pub_servo_jr_grasp = n.advertise<sensor_msgs::JointState>("grasp1/servo_jr", 1);
-  pub_servo_jp_grasp = n.advertise<sensor_msgs::JointState>("grasp1/servo_jp", 1);
+  // Read ROS Parameter Values from yaml file
+  if(!n.getParam("/robot_namespace", robot_name))
+    ROS_ERROR("Cannot read robot_namespace from the param.yaml file.");
+
+  if(!n.getParam("/arm_namespace", arm_name))
+    ROS_ERROR("Cannot read arm_namespace from the param.yaml file.");
+
+  if(!n.getParam("/grasper_namespace", grasper_name))
+    ROS_ERROR("Cannot read grasper_namespace from the param.yaml file.");
+
+  if(!n.getParam("/max_joints", tmp_max_joints))
+    ROS_ERROR("Cannot read max_joints from the param.yaml file.");
+  max_joints = (unsigned int) tmp_max_joints;
+
+  // Set Publisher and Subscribers under the namespace from from the parameter list
+  topic = arm_name + "measured_cp";
+  sub_measured_cp = n.subscribe(topic, 1, &CRTK_robot::crtk_measured_cp_arm_cb,this);
+
+  topic = arm_name + "measured_js";
+  sub_measured_js = n.subscribe(topic, 1, &CRTK_robot::crtk_measured_js_arm_cb,this);
+
+  topic = arm_name + "servo_cr";
+  pub_servo_cr = n.advertise<geometry_msgs::TransformStamped>(topic, 1);
+
+  topic = arm_name + "servo_cp";
+  pub_servo_cp = n.advertise<geometry_msgs::TransformStamped>(topic, 1);
+
+  topic = arm_name + "servo_jr";
+  pub_servo_jr = n.advertise<sensor_msgs::JointState>(topic, 1);
+
+  topic = arm_name + "servo_jp";
+  pub_servo_jp = n.advertise<sensor_msgs::JointState>(topic, 1);
+
+  topic = grasper_name + "servo_jr";
+  pub_servo_jr_grasp = n.advertise<sensor_msgs::JointState>(topic, 1);
+
+  topic = grasper_name + "servo_jp";
+  pub_servo_jp_grasp = n.advertise<sensor_msgs::JointState>(topic, 1);
 
   return true;
 

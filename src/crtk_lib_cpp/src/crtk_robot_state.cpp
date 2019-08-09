@@ -72,8 +72,18 @@ CRTK_robot_state::CRTK_robot_state(ros::NodeHandle n){
  */
 bool CRTK_robot_state::init_ros(ros::NodeHandle n){
 
-  pub = n.advertise<crtk_msgs::StringStamped>("state_command", 1);
-  sub = n.subscribe("operating_state", 1, &CRTK_robot_state::operating_state_cb,this);
+  string topic;
+
+  // Read ROS Parameter Values from yaml file
+  if(!n.getParam("/robot_namespace", robot_name))
+    ROS_ERROR("Cannot read robot_namespace from the param.yaml file.");
+
+  // Set Publisher and Subscribers under the namespace from from the parameter list
+  topic = robot_name + "state_command";
+  pub = n.advertise<crtk_msgs::StringStamped>(topic, 1);
+
+  topic = robot_name + "operating_state";
+  sub = n.subscribe(topic, 1, &CRTK_robot_state::operating_state_cb,this);
 
   return true;
 }

@@ -33,12 +33,15 @@
 #define CRTK_ROBOT_H_
 #include "defines.h"
 #include "ros/ros.h"
+#include <ros/param.h>
 
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/JointState.h>
 #include <crtk_msgs/operating_state.h>
 #include "crtk_robot_state.h"
 #include "crtk_motion.h"
+
+using namespace std;
 // Max DOF 
 // extern const int MAX_JOINTS;
 
@@ -64,7 +67,11 @@ class CRTK_robot{
     void publish_servo_jp();
     void run();
   private:
-    unsigned int max_joints; // TODO: set it from config file
+    unsigned int max_joints; 
+    string robot_name;
+    string arm_name;
+    string grasper_name;
+
     ros::Subscriber sub_measured_cp;
     ros::Subscriber sub_measured_js; 
 

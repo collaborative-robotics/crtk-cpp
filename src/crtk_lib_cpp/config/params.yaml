@@ -1,0 +1,6 @@
+# YAML file for the crtk_lib_cpp rosparameters
+
+robot_namespace: ""
+arm_namespace: "arm1/"
+grasper_namespace: "grasp1/"
+max_joints: 7
