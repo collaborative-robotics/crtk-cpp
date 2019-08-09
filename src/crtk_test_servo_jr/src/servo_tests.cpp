@@ -164,7 +164,7 @@ int test_4_1(CRTK_robot *robot, time_t current_time)
   static time_t pause_start;
   int out = 0;
   int joint_index = 0;
-  std::string start, s1,s2;
+  std::string start, s;
   float angle = 20 DEG_TO_RAD; // 10 degrees total
   float distance = 0.03;   // 3 cm in total
 
@@ -187,7 +187,7 @@ int test_4_1(CRTK_robot *robot, time_t current_time)
       }
       break;
     }
-    case 3:    case 9:    case 15:    case 21:    case 27:    case 33:
+    case 3:    case 9:    case 15: 
     {
       static int started  = 0;
       if(!started){
@@ -205,61 +205,56 @@ int test_4_1(CRTK_robot *robot, time_t current_time)
       }
       break;
     }
-    case 4:    case 10:     case 16:    case 22:    case 28:     case 34:  
+    case 4:    case 10:     case 16: 
     {
       // (4) check if crtk == enabled
       if (robot->state.get_enabled()){
-        bool check = current_step == 4 || current_step == 16 || current_step == 28;
-        int curr_arm = (check) ? 0 : 1;
 
-        s1 = (check) ? "left" : "right";
-        if(current_step <= 10)        s2 = "shoulder";
-        else if(current_step <= 22)   s2 = "tool insertion";
-        else                          s2 = "tool grasper";
+        if(current_step == 4)         s = "shoulder";
+        else if(current_step == 10)   s = "tool insertion";
+        else                          s = "tool grasper";
 
-        ROS_INFO("Moving %s arm in the %s joint ...",s1.c_str(), s2.c_str()); 
-        robot->arm[curr_arm].start_motion(current_time);
+        ROS_INFO("Moving robot arm in the %s joint ...",s.c_str()); 
+        robot->arm.start_motion(current_time);
         ROS_INFO("Start moving robot!");
         current_step ++;
       }
       break;
     }
-    case 5:    case 11:     case 17:    case 23:      case 29:     case 35:
+    case 5:    case 11:     case 17:
     {
       // (5) send motion command to move robot (for 2 secs)
-      bool check = current_step == 5 || current_step == 17 || current_step == 29;
-      int curr_arm = (check) ? 0 : 1;
 
-      if(current_step <= 11)        joint_index = 0;
-      else if(current_step <= 23)   joint_index = 2;
+      if(current_step == 5)         joint_index = 0;
+      else if(current_step == 11)   joint_index = 2;
       else                          joint_index = 6;
 
       if(joint_index == 2)
-        out = robot->arm[curr_arm].go_to_jpos(0,joint_index, distance, current_time);
+        out = robot->arm.go_to_jpos(0,joint_index, distance, current_time);
       else
-        out = robot->arm[curr_arm].go_to_jpos(0,joint_index, angle, current_time);
+        out = robot->arm.go_to_jpos(0,joint_index, angle, current_time);
 
       out = step_success(out, &current_step);
       break;
     }
-    case 6:    case 12:    case 18:    case 24:    case 30:     case 36:   
+    case 6:    case 12:    case 18:
     {
       // (6) do a dance
       out = 1; 
       out = step_success(out, &current_step);
       break;
     }
-    case 7:    case 13:    case 19:     case 25:    case 31:    case 37:
+    case 7:    case 13:    case 19: 
     {
       // (7) ask human if it moved (back)?
-      if(current_step <= 13)        s2 = "shoulder";
-      else if(current_step <= 25)   s2 = "tool insertion";
-      else                          s2 = "tool grasper";
-      ROS_INFO("Did the %s move aout %f degrees? (Y/N)", s2.c_str(),angle RAD_TO_DEG);
+      if(current_step == 7)         s = "shoulder";
+      else if(current_step == 13)   s = "tool insertion";
+      else                          s = "tool grasper";
+      ROS_INFO("Did the %s move aout %f degrees? (Y/N)", s.c_str(),angle RAD_TO_DEG);
       current_step++;
       break;
     }
-    case 8:    case 14:    case 20:     case 26:     case 32:    case 38:
+    case 8:    case 14:    case 20: 
     {
       // (8) take user input yes or no
       getline(std::cin,start);
@@ -274,7 +269,7 @@ int test_4_1(CRTK_robot *robot, time_t current_time)
       else{
         current_step --;
       }
-      if(current_step == 39 && out == 1)
+      if(current_step == 21 && out == 1)
         return 1; // at the end of test
       break;
     }
@@ -301,7 +296,7 @@ int test_4_2(CRTK_robot *robot, time_t current_time)
   static int current_step = 1;
   static time_t pause_start;
   int out = 0;
-  std::string start, s1,s2;
+  std::string start, s;
   float pos_thresh = 10 DEG_TO_RAD;
   float vel_thresh = 10 DEG_TO_RAD;
   float angle = 45 DEG_TO_RAD; // 45 degrees total
@@ -349,33 +344,30 @@ int test_4_2(CRTK_robot *robot, time_t current_time)
     {
       // (4) check if crtk == enabled
       if (robot->state.get_enabled()){
-        int curr_arm = (current_step == 4) ? 0 : 1;
-        s1 = (current_step == 4) ? "left" : "right";
-        ROS_INFO("Taking %s arm home ...",s1.c_str()); 
-        robot->arm[curr_arm].start_motion(current_time);
-        robot->arm[curr_arm].get_home_jpos(home);
+        ROS_INFO("Taking robot arm home ..."); 
+        robot->arm.start_motion(current_time);
+        robot->arm.get_home_jpos(home);
         ROS_INFO("Start moving robot!");
         current_step ++;
       }
       break;
     }
-    case 5:    case 11:    
+    case 5: 
     {
       // (5) send motion command to move robot (for 2 secs)
-      int curr_arm = (current_step == 5) ? 0 : 1;
-      robot->arm[curr_arm].get_home_jpos(home);
-      out = robot->arm[curr_arm].go_to_jpos(0, home, current_time);
+      robot->arm.get_home_jpos(home);
+      out = robot->arm.go_to_jpos(0, home, current_time);
       out = step_success(out, &current_step);
       break;
     }
-    case 6:    case 12:    
+    case 6: 
     {
       // (6) do a dance
       out = 1; //check_movement_rotation(&robot->arm[curr_arm], angle, 1, current_time, start_pos);
       out = step_success(out, &current_step);
       break;
     }
-    case 7:    case 13:    
+    case 7: 
     {
       // (7) ask human if it moved (back)?
       // CRTK_robot_command command = CRTK_PAUSE;
@@ -384,7 +376,7 @@ int test_4_2(CRTK_robot *robot, time_t current_time)
       current_step++;
       break;
     }
-    case 8:    case 14:    
+    case 8: 
     {
       // (8) take user input yes or no
       getline(std::cin,start);
@@ -399,7 +391,7 @@ int test_4_2(CRTK_robot *robot, time_t current_time)
       else{
         current_step --;
       }
-      if(current_step == 15 && out == 1)
+      if(current_step == 9 && out == 1)
         return 1; // at the end of test
       break;
     }
