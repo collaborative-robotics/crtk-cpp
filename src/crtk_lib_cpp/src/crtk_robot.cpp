@@ -41,18 +41,81 @@
  * @param[in]  n     ros node handle
  */
 CRTK_robot::CRTK_robot(ros::NodeHandle n):state(n){
-  init_ros(n);
-
-  // get params from cfg file
-
-  #ifdef RAVEN
-  arm.set_home_pos(raven_gold_home_rot, raven_gold_home_pos);
-
-  arm.set_home_jpos(raven_gold_home_jpos, MAX_JOINTS);
-
-  #endif
+  init_param(n);
+  init_ros(n);  
 }
 
+
+/**
+ * @brief      Initialize ROS parameter settings
+ *
+ * @param[in]  n     ROS node handler
+ *
+ * @return           success
+ */
+bool CRTK_robot::init_param(ros::NodeHandle n){
+
+  
+  
+
+  // Read ROS Parameter Values from yaml file
+
+  if(!n.getParam("/robot_namespace", robot_name))
+    ROS_ERROR("Cannot read robot_namespace from the param.yaml file.");
+
+  if(!n.getParam("/arm_namespace", arm_name))
+    ROS_ERROR("Cannot read arm_namespace from the param.yaml file.");
+
+  if(!n.getParam("/grasper_namespace", grasper_name))
+    ROS_ERROR("Cannot read grasper_namespace from the param.yaml file.");
+
+  double tmp_max_joints;
+  if(!n.getParam("/max_joints", tmp_max_joints))
+    ROS_ERROR("Cannot read max_joints from the param.yaml file.");
+  max_joints = (unsigned int) tmp_max_joints;
+
+
+  float home_jpos[MAX_JOINTS];
+  XmlRpc::XmlRpcValue tmp_home_pos;
+  XmlRpc::XmlRpcValue tmp_home_jpos;
+  XmlRpc::XmlRpcValue tmp_home_rot;
+  n.getParam("/home_pos", tmp_home_pos);
+  n.getParam("/home_jpos", tmp_home_jpos);
+  n.getParam("/home_rot", tmp_home_rot);
+
+  ROS_ASSERT(tmp_home_pos.getType() == XmlRpc::XmlRpcValue::TypeArray);
+  ROS_ASSERT(tmp_home_jpos.getType() == XmlRpc::XmlRpcValue::TypeArray);
+  ROS_ASSERT(tmp_home_rot.getType() == XmlRpc::XmlRpcValue::TypeArray);
+
+  if(tmp_home_pos.size()!=3) 
+    ROS_ERROR("Wrong length for /home_pos parameter. (desired 3, actual %d",tmp_home_pos.size());
+  if(tmp_home_jpos.size()!=max_joints) 
+    ROS_ERROR("Wrong length for /home_jpos parameter. (desired %d, actual %d",max_joints,tmp_home_jpos.size());
+  if(tmp_home_rot.size()!=4) 
+    ROS_ERROR("Wrong length for /home_rot parameter. (desired 4, actual %d",tmp_home_rot.size());
+
+  for(int i=0; i<tmp_home_pos.size();i++)
+    ROS_ASSERT(tmp_home_pos[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+  for(int i=0; i<tmp_home_jpos.size();i++)
+    ROS_ASSERT(tmp_home_jpos[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+  for(int i=0; i<tmp_home_rot.size();i++)
+    ROS_ASSERT(tmp_home_rot[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+
+  tf::Vector3 home_pos(tmp_home_pos[0],tmp_home_pos[1],tmp_home_pos[2]);
+  tf::Quaternion home_rot(tmp_home_rot[0],tmp_home_rot[1],tmp_home_rot[2],tmp_home_rot[3]);
+  
+  for(int i=0; i<tmp_home_jpos.size();i++)
+  {
+    ROS_ASSERT(tmp_home_jpos[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+    home_jpos[i] = (float)(double)tmp_home_jpos[i];
+  }
+
+  arm.set_home_pos(home_rot, home_pos);
+  arm.set_home_jpos(home_jpos, MAX_JOINTS);
+
+  ROS_INFO("All ROS parameters loaded.");
+
+}
 
 
 /**
@@ -64,21 +127,6 @@ CRTK_robot::CRTK_robot(ros::NodeHandle n):state(n){
 bool CRTK_robot::init_ros(ros::NodeHandle n){
   
   std::string topic;
-  double tmp_max_joints;
-
-  // Read ROS Parameter Values from yaml file
-  if(!n.getParam("/robot_namespace", robot_name))
-    ROS_ERROR("Cannot read robot_namespace from the param.yaml file.");
-
-  if(!n.getParam("/arm_namespace", arm_name))
-    ROS_ERROR("Cannot read arm_namespace from the param.yaml file.");
-
-  if(!n.getParam("/grasper_namespace", grasper_name))
-    ROS_ERROR("Cannot read grasper_namespace from the param.yaml file.");
-
-  if(!n.getParam("/max_joints", tmp_max_joints))
-    ROS_ERROR("Cannot read max_joints from the param.yaml file.");
-  max_joints = (unsigned int) tmp_max_joints;
 
   // Set Publisher and Subscribers under the namespace from from the parameter list
   topic = arm_name + "measured_cp";

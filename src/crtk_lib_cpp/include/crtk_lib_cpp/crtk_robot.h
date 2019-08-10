@@ -34,6 +34,7 @@
 #include "defines.h"
 #include "ros/ros.h"
 #include <ros/param.h>
+#include <xmlrpcpp/XmlRpcValue.h> // catkin component
 
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/JointState.h>
@@ -52,6 +53,7 @@ class CRTK_robot{
 
     CRTK_robot(ros::NodeHandle n);
     ~CRTK_robot(){};
+    bool init_param(ros::NodeHandle);
     bool init_ros(ros::NodeHandle);
     void crtk_measured_cp_arm_cb(geometry_msgs::TransformStamped);
     void crtk_measured_js_arm_cb(sensor_msgs::JointState);
