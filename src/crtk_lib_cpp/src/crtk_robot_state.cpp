@@ -48,7 +48,9 @@ CRTK_robot_state::CRTK_robot_state(){
   has_connected = 0;
 }
 
-CRTK_robot_state::CRTK_robot_state(ros::NodeHandle n){
+CRTK_robot_state::CRTK_robot_state(ros::NodeHandle n, std::string robot_ns){
+
+  robot_name    = robot_ns;
   is_disabled   = 0;
   is_enabled    = 0;
   is_paused     = 0;
@@ -72,8 +74,14 @@ CRTK_robot_state::CRTK_robot_state(ros::NodeHandle n){
  */
 bool CRTK_robot_state::init_ros(ros::NodeHandle n){
 
-  pub = n.advertise<crtk_msgs::StringStamped>("state_command", 1);
-  sub = n.subscribe("operating_state", 1, &CRTK_robot_state::operating_state_cb,this);
+  std::string topic;
+
+  // Set Publisher and Subscribers under the namespace from from the parameter list
+  topic = "/" + robot_name + "/state_command";
+  pub = n.advertise<crtk_msgs::StringStamped>(topic, 1);
+
+  topic = "/" + robot_name + "/operating_state";
+  sub = n.subscribe(topic, 1, &CRTK_robot_state::operating_state_cb,this);
 
   return true;
 }

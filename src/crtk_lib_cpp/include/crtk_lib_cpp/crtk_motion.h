@@ -110,6 +110,9 @@ public:
   char go_to_jpos(char,float*, time_t, int length = MAX_JOINTS);
   char is_prismatic(int);
 
+  bool check_home_pos_set();
+  bool check_home_jpos_set();
+
 private:
   tf::Transform measured_cp;
   tf::Transform measured_cv;
@@ -140,8 +143,8 @@ private:
 
   tf::Transform home_pos;
   bool home_pos_set;
-  float home_jpos[MAX_JOINTS];
   bool home_jpos_set;
+  float home_jpos[MAX_JOINTS];
   char prismatic_joints[MAX_JOINTS];
 
 };

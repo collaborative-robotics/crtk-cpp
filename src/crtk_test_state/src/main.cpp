@@ -71,12 +71,15 @@ int main(int argc, char **argv)
 {
 
   time_t current_time;
-  CRTK_robot_state robot_state;
+  
 
   ros::init(argc, argv, "crtk_test_state");
-  static ros::NodeHandle n;
-  
-  robot_state.init_ros(n);
+  static ros::NodeHandle n("~"); 
+
+  std::string r_space;
+  if(!n.getParam("r_space", r_space))
+    ROS_ERROR("No Robot namespace provided in command line!");
+  CRTK_robot_state robot_state(n,r_space);
 
   int count = 0;
   ros::Rate loop_rate(10); // \TODO increase loop rate?

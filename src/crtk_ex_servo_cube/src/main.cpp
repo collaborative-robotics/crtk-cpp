@@ -72,11 +72,13 @@ int main(int argc, char **argv)
 
   time_t current_time;
   ros::init(argc, argv, "crtk_test_servo_all");
-  static ros::NodeHandle n; 
+  static ros::NodeHandle n("~"); 
   ros::Rate loop_rate(LOOP_RATE); 
 
-  CRTK_robot robot(n);
-
+  std::string r_space;
+  if(!n.getParam("r_space", r_space))
+    ROS_ERROR("No Robot namespace provided in command line!");
+  CRTK_robot robot(n,r_space);
   int count = 0;
 
   ROS_INFO("Please launch stand alone roscore.");
@@ -105,19 +107,16 @@ int main(int argc, char **argv)
 int run_cube(CRTK_robot *robot, time_t current_time){
   static int current_step = 1;
   static time_t pause_start;
-  int out = 0, out1 = 0, out2 = 0;
-  std::string start, s1,s2;
+  int out = 0;
+  std::string start;
 
   float dist = 0.01; // 10 mm total
   int duration = 1;
   float completion_percentage_thres = 0.85;  // 0.95;
-  static tf::Transform start_pos1, start_pos2;
 
-  static char curr_vertex0 = 0b110; //start arm 0 in front left upper
-  static char curr_vertex1 = 0b110; //start arm 1 in front left upper
-  static tf::Vector3 move_vec0, move_vec1;
-  static CRTK_axis prev_axis0 = CRTK_Z;
-  static CRTK_axis prev_axis1 = CRTK_Z; 
+  static char curr_vertex = 0b110; 
+  static tf::Vector3 move_vec;
+  static CRTK_axis prev_axis = CRTK_Z;
 
   static char edge_count = 0;
 
@@ -128,7 +127,7 @@ int run_cube(CRTK_robot *robot, time_t current_time){
       ROS_INFO("======================= Starting servo_cr cube ======================= ");
       ROS_INFO("Start and home robot if not already.");
       ROS_INFO("(Press 'Enter' when done.)"); 
-      ROS_INFO("In this example, the arms should randomly trace a cube. Forever \n");
+      ROS_INFO("In this example, the arm should randomly trace a cube. Forever \n");
       ROS_INFO("And ever...\n \n");
       ROS_INFO("and ever.");
       current_step ++;
@@ -150,57 +149,42 @@ int run_cube(CRTK_robot *robot, time_t current_time){
       ROS_INFO("Waiting for robot to enter CRTK_ENABLED state..."); 
       CRTK_robot_command command = CRTK_RESUME;
       robot->state.crtk_command_pb(command); 
-      robot->arm[0].start_motion(current_time);
+      robot->arm.start_motion(current_time);
       current_step++;
       break;
     }
     case 4:
     {
-      // (4) send motion command to move left robot arm down (for 2 secs)
+      // (4) send motion command to move the robot arm down (for 2 secs)
       if (robot->state.get_enabled()){
-        out = robot->arm[0].send_servo_cr_time(-vec_z,dist,duration,current_time);
+        out = robot->arm.send_servo_cr_time(-vec_z,dist,duration,current_time);
         if(out) current_step++;
-        if(out) robot->arm[1].start_motion(current_time);
       }
       break;
     }
     case 5:
-    {
-      // (5) send motion command to move right robot arm down (for 2 secs)
-      if (robot->state.get_enabled()){
-        out = robot->arm[1].send_servo_cr_time(-vec_z,dist,duration,current_time);
-        if(out) current_step++;
-      }
-      break;
-    }
-    case 6:
     {
       // (6) record start pos
       ROS_INFO("Start randomly tracing a cube.");
       current_step ++;
       break;
     }
-    case 7:
+    case 6:
     {
-      rand_cube_dir(&curr_vertex0, &move_vec0, &prev_axis0);
-      rand_cube_dir(&curr_vertex1, &move_vec1, &prev_axis1);
-      robot->arm[0].start_motion(current_time);
-      robot->arm[1].start_motion(current_time);
+      rand_cube_dir(&curr_vertex, &move_vec, &prev_axis);
+      robot->arm.start_motion(current_time);
 
       edge_count++;
       current_step++;
       break;
     }
-    case 8:
+    case 7:
     {
-      out1 = 0;
-      out2 = 0;
-      if(!out1) out1 = robot->arm[0].send_servo_cr_time(move_vec0,dist,duration,current_time);
-      else             robot->arm[0].send_servo_cr(tf::Transform());
-      if(!out2) out2 = robot->arm[1].send_servo_cr_time(move_vec1,dist,duration,current_time);
-      else             robot->arm[1].send_servo_cr(tf::Transform());
+      out = 0;
+      if(!out) out = robot->arm.send_servo_cr_time(move_vec,dist,duration,current_time);
+      else           robot->arm.send_servo_cr(tf::Transform());
 
-      if(out1 && out2) current_step = 7;
+      if(out) current_step = 6;
       
       break;
     }

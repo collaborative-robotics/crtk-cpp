@@ -64,65 +64,53 @@ int check_joint_motion_and_vel(CRTK_robot* robot, float pos_thresh, float vel_th
   static int start = 1;
   double scale;
   static time_t start_time;
-  static float start_pos1[MAX_JOINTS], start_pos2[MAX_JOINTS];
-  static float curr_pos1[MAX_JOINTS], curr_pos2[MAX_JOINTS],curr_vel1[MAX_JOINTS], curr_vel2[MAX_JOINTS]; 
-  static int pos1_done[MAX_JOINTS],pos2_done[MAX_JOINTS],vel1_done[MAX_JOINTS],vel2_done[MAX_JOINTS];
-  static float max_vel1[MAX_JOINTS], max_vel2[MAX_JOINTS]; 
+  static float start_pos[MAX_JOINTS];
+  static float curr_pos[MAX_JOINTS],curr_vel[MAX_JOINTS]; 
+  static int pos_done[MAX_JOINTS],vel_done[MAX_JOINTS];
+  static float max_vel[MAX_JOINTS]; 
 
   if (start){
-    robot->arm[0].get_measured_js_pos(start_pos1, MAX_JOINTS);
-    robot->arm[1].get_measured_js_pos(start_pos2, MAX_JOINTS);
+    robot->arm.get_measured_js_pos(start_pos, MAX_JOINTS);
     start_time = current_time;
 
     ROS_INFO(" pos_thresh = %f",fabs(pos_thresh));
     ROS_INFO(" vel_thresh = %f",fabs(vel_thresh));
     for(int i=0;i<MAX_JOINTS;i++){
-      pos1_done[i] = 0;
-      pos2_done[i] = 0;
-      vel1_done[i] = 0;
-      vel2_done[i] = 0;
-      max_vel1[i] = 0;
-      max_vel2[i] = 0;
+      pos_done[i] = 0;
+      vel_done[i] = 0;
+      max_vel[i] = 0;
     }
     start = 0;
   }
 
-  robot->arm[0].get_measured_js_pos(curr_pos1, MAX_JOINTS);
-  robot->arm[1].get_measured_js_pos(curr_pos2, MAX_JOINTS);
-  robot->arm[0].get_measured_js_vel(curr_vel1, MAX_JOINTS);
-  robot->arm[1].get_measured_js_vel(curr_vel2, MAX_JOINTS);
+  robot->arm.get_measured_js_pos(curr_pos, MAX_JOINTS);
+  robot->arm.get_measured_js_vel(curr_vel, MAX_JOINTS);
 
   //check each joint for motion and velocity greater than threshold
   for(int i = 0; i<MAX_JOINTS; i++){
     if(i == 2)  scale = 0.1;
     else        scale = 1.0;
 
-    if(fabs(start_pos1[i] - curr_pos1[i]) > fabs(pos_thresh*scale)) pos1_done[i] = 1;
-    if(fabs(start_pos2[i] - curr_pos2[i]) > fabs(pos_thresh*scale)) pos2_done[i] = 1;
-    if(fabs(curr_vel1[i]) > vel_thresh*scale) vel1_done[i] = 1;
-    if(fabs(curr_vel2[i]) > vel_thresh*scale) vel2_done[i] = 1;
+    if(fabs(start_pos[i] - curr_pos[i]) > fabs(pos_thresh*scale)) pos_done[i] = 1;
+    if(fabs(curr_vel[i]) > vel_thresh*scale) vel_done[i] = 1;
 
-    if(fabs(curr_vel1[i]) >= fabs(max_vel1[i])) max_vel1[i] = curr_vel1[i];
-    if(fabs(curr_vel2[i]) >= fabs(max_vel2[i])) max_vel2[i] = curr_vel2[i];
+    if(fabs(curr_vel[i]) >= fabs(max_vel[i])) max_vel[i] = curr_vel[i];
   }
 
  static int count = 0;
   if(count % 1500 == 0){
-    ROS_INFO("(pos1 done)-- %i, %i, %i, %i, %i, %i, %i", pos1_done[0],pos1_done[1],pos1_done[2], pos1_done[3],pos1_done[4],pos1_done[5],pos1_done[6]);
-    ROS_INFO("(pos2 done)-- %i, %i, %i, %i, %i, %i, %i", pos2_done[0],pos2_done[1],pos2_done[2], pos2_done[3],pos2_done[4],pos2_done[5],pos2_done[6]);
-    ROS_INFO("(vel1 done)-- %i, %i, %i, %i, %i, %i, %i", vel1_done[0],vel1_done[1],vel1_done[2], vel1_done[3],vel1_done[4],vel1_done[5],vel1_done[6]);
-    ROS_INFO("(vel2 done)-- %i, %i, %i, %i, %i, %i, %i", vel2_done[0],vel2_done[1],vel2_done[2], vel2_done[3],vel2_done[4],vel2_done[5],vel2_done[6]);
+    ROS_INFO("(pos done)-- %i, %i, %i, %i, %i, %i, %i", pos_done[0],pos_done[1],pos_done[2], pos_done[3],pos_done[4],pos_done[5],pos_done[6]);
+    ROS_INFO("(vel done)-- %i, %i, %i, %i, %i, %i, %i", vel_done[0],vel_done[1],vel_done[2], vel_done[3],vel_done[4],vel_done[5],vel_done[6]);
     ROS_INFO(" ");
 
   }
   count ++;
 
-  if((done_sum(pos1_done) == MAX_JOINTS) && (done_sum(pos2_done) == MAX_JOINTS) && (done_sum(vel1_done) == MAX_JOINTS) && (done_sum(vel2_done) == MAX_JOINTS)){
+  if((done_sum(pos_done) == MAX_JOINTS) && (done_sum(vel_done) == MAX_JOINTS)){
     //success!
 
-    ROS_INFO("max_vel1-- %f, %f, %f, %f, %f, %f, %f", max_vel1[0],max_vel1[1],max_vel1[2],max_vel1[3],max_vel1[4],max_vel1[5],max_vel1[6]);
-    ROS_INFO("max_vel2-- %f, %f, %f, %f, %f, %f, %f", max_vel2[0],max_vel2[1],max_vel2[2],max_vel2[3],max_vel2[4],max_vel2[5],max_vel2[6]);
-    ROS_INFO("pos1_done %i\tpos2_done %i\tvel1_done %i\tvel2_done %i",done_sum(pos1_done),done_sum(pos2_done),done_sum(vel1_done),done_sum(vel2_done));
+    ROS_INFO("max_vel-- %f, %f, %f, %f, %f, %f, %f", max_vel[0],max_vel[1],max_vel[2],max_vel[3],max_vel[4],max_vel[5],max_vel[6]);
+    ROS_INFO("pos_done %i\tvel_done %i",done_sum(pos_done),done_sum(vel_done));
     ROS_INFO(" ");
     start = 1;
     return 1;
@@ -130,15 +118,12 @@ int check_joint_motion_and_vel(CRTK_robot* robot, float pos_thresh, float vel_th
   //if no, check time 
   else if(current_time - start_time > check_time){
     ROS_ERROR("Joint motion and velocity check timeout on step.");
-    if (done_sum(pos1_done) != MAX_JOINTS) ROS_INFO("arm 1 didn't move far enough");
-    if (done_sum(pos2_done) != MAX_JOINTS) ROS_INFO("arm 2 didn't move far enough");
-    if (done_sum(vel1_done) != MAX_JOINTS) ROS_INFO("arm 1 didn't move fast enough");
-    if (done_sum(vel2_done) != MAX_JOINTS) ROS_INFO("arm 2 didn't move fast enough");
+    if (done_sum(pos_done) != MAX_JOINTS) ROS_INFO("robot arm didn't move far enough");
+    if (done_sum(vel_done) != MAX_JOINTS) ROS_INFO("robot arm didn't move fast enough");
 
 
-    ROS_INFO("max_vel1-- %f, %f, %f, %f, %f, %f, %f", max_vel1[0],max_vel1[1],max_vel1[2],max_vel1[3],max_vel1[4],max_vel1[5],max_vel1[6]);
-    ROS_INFO("max_vel2-- %f, %f, %f, %f, %f, %f, %f", max_vel2[0],max_vel2[1],max_vel2[2],max_vel2[3],max_vel2[4],max_vel2[5],max_vel2[6]);
-    ROS_INFO("pos1_done %i\tpos2_done %i\tvel1_done %i\tvel2_done %i",done_sum(pos1_done),done_sum(pos2_done),done_sum(vel1_done),done_sum(vel2_done));
+    ROS_INFO("max_vel-- %f, %f, %f, %f, %f, %f, %f", max_vel[0],max_vel[1],max_vel[2],max_vel[3],max_vel[4],max_vel[5],max_vel[6]);
+    ROS_INFO("pos_done %i\tvel_done %i",done_sum(pos_done),done_sum(vel_done));
     ROS_INFO(" ");
     start = 1;
     return -1;

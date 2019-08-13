@@ -37,6 +37,7 @@
  * @brief      Constructs the CRTK_motion object.
  */
 CRTK_motion::CRTK_motion(){
+
   servo_cr_updated = 0;
   servo_cp_updated = 0;
   servo_jr_updated = 0;
@@ -1253,3 +1254,24 @@ void CRTK_motion::get_home_jpos(float* out, int length)
   }
 
 }
+
+  /**
+   * @brief      Check if home pos is set
+   *
+   * @return     home_pos_set flag
+   */
+  bool CRTK_motion::check_home_pos_set()
+  {
+    return home_pos_set;
+  }
+
+
+  /**
+   * @brief      Check if home jpos is set
+   *
+   * @return     home_jpos_set flag
+   */
+  bool CRTK_motion::check_home_jpos_set()
+  {
+    return home_jpos_set;
+  }

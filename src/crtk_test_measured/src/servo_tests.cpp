@@ -158,7 +158,7 @@ int test_1(CRTK_robot *robot, time_t current_time){
     case 1:
     {
       ROS_INFO("======================= Starting test_1-1 ======================= ");
-      ROS_INFO("Please move each joint of the robot at least %f radians at at least %f rad/s", pos_thresh, vel_thresh);
+      ROS_INFO("Please move each joint of the robot arm at least %f radians at at least %f rad/s", pos_thresh, vel_thresh);
       ROS_INFO("You have 60 seconds to complete this test. Good luck.");        
       current_step++;
       break;
@@ -190,67 +190,36 @@ int test_1(CRTK_robot *robot, time_t current_time){
     }
     case 5:
     {
-      ROS_INFO("Please move left tool 50mm in X -- back.");
+      ROS_INFO("Please move robot arm 50mm in X -- back.");
       ROS_INFO("You have 30 seconds to complete this test. Good luck.");        
       current_step++;
       break;
     }
     case 6:
     {
-      // (6) check arm1 motion in X
+      // (6) check arm motion in X
       float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot->arm[0], CRTK_X, dist, 30, current_time);
+      out = check_movement_direction(&robot->arm, CRTK_X, dist, 30, current_time);
       out = step_success(out, &current_step);
       break;
     }
     case 7:
     {
-      ROS_INFO("Please move left tool 50mm in Y -- left.");
+      ROS_INFO("Please move robot arm 50mm in Y -- left.");
       ROS_INFO("You have 30 seconds to complete this test. Good luck.");        
       current_step++;
       break;
     }
     case 8:
     {
-      // (8) check arm1 motion in X
+      // (8) check arm motion in X
       float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot->arm[0], CRTK_Y, dist, 30, current_time);
-      out = step_success(out, &current_step);
-      break;
-    }
-    case 9:
-    {
-      ROS_INFO("Please move right tool 50mm in X -- back.");
-      ROS_INFO("You have 30 seconds to complete this test. Good luck.");        
-      current_step++;
-      break;
-    }
-    case 10:
-    {
-      // (10) check arm1 motion in X
-      float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot->arm[1], CRTK_X, dist, 30, current_time);
-      out = step_success(out, &current_step);
-      break;
-    }
-    case 11:
-    {
-      ROS_INFO("Please move right tool 50mm in Y -- left.");
-      ROS_INFO("You have 30 seconds to complete this test. Good luck.");        
-      current_step++;
-      break;
-    }
-    case 12:
-    {
-      // (12) check arm1 motion in X
-      float dist = 0.05; // 50 mm
-      out = check_movement_direction(&robot->arm[1], CRTK_Y, dist, 30, current_time);
+      out = check_movement_direction(&robot->arm, CRTK_Y, dist, 30, current_time);
       out = step_success(out, &current_step);
       if(out == 1)
         return 1;
       break;
     }
-
   }
   if(out < 0) return out;
   return 0;

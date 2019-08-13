@@ -31,28 +31,97 @@
  */
 
 #include "crtk_robot.h"
+
 /**
  * @brief      Constructs the robot object.
  *
- * Starts the ROS interfaces and sets the home position for the specific robot.
- * 
- * @todo query the robot to find it's home position
- *
- * @param[in]  n     ros node handle
+ * @param[in]  n           ros node handle
+ * @param[in]  robot_ns    The robot namespace
+ * @param[in]  grasper_ns  The grasper namespace
  */
-CRTK_robot::CRTK_robot(ros::NodeHandle n):state(n){
-  init_ros(n);
+CRTK_robot::CRTK_robot(ros::NodeHandle n, std::string robot_ns):state(n, robot_ns){
 
-  // get params from cfg file
-
-  #ifdef RAVEN
-  arm.set_home_pos(raven_gold_home_rot, raven_gold_home_pos);
-
-  arm.set_home_jpos(raven_gold_home_jpos, MAX_JOINTS);
-
-  #endif
+  robot_name = robot_ns;
+  init_param(n);
+  init_ros(n);  
 }
 
+/**
+ * @brief      Initialize ROS parameter settings
+ *
+ * @param[in]  n     ROS node handler
+ *
+ * @return           success
+ */
+bool CRTK_robot::init_param(ros::NodeHandle n){
+
+  char set_new_home_pos  = 0;
+  char set_new_home_jpos = 0;
+  char set_new_home_quat = 0;
+
+  // Read ROS Parameter Values from yaml file
+  if(!n.getParam("/"+robot_name+"/grasper_name", grasper_name))
+    ROS_ERROR("Cannot read grasper_name from the %s's yaml file.", robot_name.c_str());
+  else
+    ROS_INFO("Robot namespace: %s, Grasper namespace: %s",robot_name.c_str(),grasper_name.c_str());
+
+
+  double tmp_max_joints;
+  if(!n.getParam("/"+robot_name+"/num_joints", tmp_max_joints))
+    ROS_ERROR("Cannot read num_joints from the %s's yaml file.", robot_name.c_str());
+  max_joints = (unsigned int) tmp_max_joints;
+
+  float home_jpos[MAX_JOINTS];
+  XmlRpc::XmlRpcValue tmp_home_pos;
+  XmlRpc::XmlRpcValue tmp_home_jpos;
+  XmlRpc::XmlRpcValue tmp_home_quat;
+  n.getParam("/"+robot_name+"/home_pos", tmp_home_pos);
+  n.getParam("/"+robot_name+"/home_jpos", tmp_home_jpos);
+  n.getParam("/"+robot_name+"/home_quat", tmp_home_quat);
+
+  ROS_ASSERT(tmp_home_pos.getType() == XmlRpc::XmlRpcValue::TypeArray);
+  ROS_ASSERT(tmp_home_jpos.getType() == XmlRpc::XmlRpcValue::TypeArray);
+  ROS_ASSERT(tmp_home_quat.getType() == XmlRpc::XmlRpcValue::TypeArray);
+
+  if(tmp_home_pos.size()!=3) 
+    ROS_ERROR("Wrong length for home_pos parameter. (desired 3, actual %d",tmp_home_pos.size());
+  else
+    set_new_home_pos = 1;
+
+  if(tmp_home_jpos.size()!=max_joints) 
+    ROS_ERROR("Wrong length for home_jpos parameter. (desired %d, actual %d",max_joints,tmp_home_jpos.size());
+  else
+    set_new_home_jpos = 1;
+
+  if(tmp_home_quat.size()!=4) 
+    ROS_ERROR("Wrong length for home_quat parameter. (desired 4, actual %d",tmp_home_quat.size());
+  else
+    set_new_home_quat = 1;
+
+  for(int i=0; i<tmp_home_pos.size();i++)
+    ROS_ASSERT(tmp_home_pos[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+  for(int i=0; i<tmp_home_jpos.size();i++)
+    ROS_ASSERT(tmp_home_jpos[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+  for(int i=0; i<tmp_home_quat.size();i++)
+    ROS_ASSERT(tmp_home_quat[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+
+  tf::Vector3 home_pos(tmp_home_pos[0],tmp_home_pos[1],tmp_home_pos[2]);
+  tf::Quaternion home_quat(tmp_home_quat[0],tmp_home_quat[1],tmp_home_quat[2],tmp_home_quat[3]);
+  
+  for(int i=0; i<tmp_home_jpos.size();i++)
+  {
+    ROS_ASSERT(tmp_home_jpos[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+    home_jpos[i] = (float)(double)tmp_home_jpos[i];
+  }
+
+  if(set_new_home_pos && set_new_home_quat)
+    arm.set_home_pos(home_quat, home_pos);
+
+  if(set_new_home_jpos)
+    arm.set_home_jpos(home_jpos, MAX_JOINTS);
+
+  ROS_INFO("All ROS parameters loaded.");
+}
 
 
 /**
@@ -62,15 +131,33 @@ CRTK_robot::CRTK_robot(ros::NodeHandle n):state(n){
  * @return           success
  */
 bool CRTK_robot::init_ros(ros::NodeHandle n){
+  
+  std::string topic;
 
-  sub_measured_cp = n.subscribe("arm1/measured_cp", 1, &CRTK_robot::crtk_measured_cp_arm_cb,this);
-  sub_measured_js = n.subscribe("arm1/measured_js", 1, &CRTK_robot::crtk_measured_js_arm_cb,this);
-  pub_servo_cr = n.advertise<geometry_msgs::TransformStamped>("arm1/servo_cr", 1);
-  pub_servo_cp = n.advertise<geometry_msgs::TransformStamped>("arm1/servo_cp", 1);
-  pub_servo_jr = n.advertise<sensor_msgs::JointState>("arm1/servo_jr", 1);
-  pub_servo_jp = n.advertise<sensor_msgs::JointState>("arm1/servo_jp", 1);
-  pub_servo_jr_grasp = n.advertise<sensor_msgs::JointState>("grasp1/servo_jr", 1);
-  pub_servo_jp_grasp = n.advertise<sensor_msgs::JointState>("grasp1/servo_jp", 1);
+  // Set Publisher and Subscribers under the namespace from from the parameter list
+  topic = "/" + robot_name + "/measured_cp";
+  sub_measured_cp = n.subscribe(topic, 1, &CRTK_robot::crtk_measured_cp_arm_cb,this);
+
+  topic = "/" + robot_name + "/measured_js";
+  sub_measured_js = n.subscribe(topic, 1, &CRTK_robot::crtk_measured_js_arm_cb,this);
+
+  topic = "/" + robot_name + "/servo_cr";
+  pub_servo_cr = n.advertise<geometry_msgs::TransformStamped>(topic, 1);
+
+  topic = "/" + robot_name + "/servo_cp";
+  pub_servo_cp = n.advertise<geometry_msgs::TransformStamped>(topic, 1);
+
+  topic = "/" + robot_name + "/servo_jr";
+  pub_servo_jr = n.advertise<sensor_msgs::JointState>(topic, 1);
+
+  topic = "/" + robot_name + "/servo_jp";
+  pub_servo_jp = n.advertise<sensor_msgs::JointState>(topic, 1);
+
+  topic = "/" + grasper_name + "/servo_jr";
+  pub_servo_jr_grasp = n.advertise<sensor_msgs::JointState>(topic, 1);
+
+  topic = "/" + grasper_name + "/servo_jp";
+  pub_servo_jp_grasp = n.advertise<sensor_msgs::JointState>(topic, 1);
 
   return true;
 
@@ -290,10 +377,13 @@ int main(int argc, char **argv){
 
   ros::init(argc, argv, "crtk_robot_library_wtf");  
 
-  static ros::NodeHandle n; 
+  static ros::NodeHandle n("~"); 
   ros::Rate loop_rate(LOOP_RATE); 
 
-  CRTK_robot robot(n);
+  std::string r_space;
+  if(!n.getParam("r_space", r_space))
+    ROS_ERROR("No Robot namespace provided in command line!");
+  CRTK_robot robot(n,r_space);
 
   int count = 0;
 
