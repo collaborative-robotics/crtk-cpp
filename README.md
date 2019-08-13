@@ -9,7 +9,7 @@ Build instructions:
 
 Run instructions:
 ----------
-1. make sure the package is built wothout error
+1. make sure the package is built without error
 2. Load parameters from the robot roslaunch file.
 3. List the parameters: <pre><code>rosparam list</pre></code>
 4. Make sure parameters: **num_joints**, **home_pos**, **home_quat**, **home_jpos** and **grasper_name** are all on the list and under the robot namespace.
