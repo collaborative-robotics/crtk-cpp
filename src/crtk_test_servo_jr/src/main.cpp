@@ -73,10 +73,13 @@ int main(int argc, char **argv)
 
   time_t current_time;
   ros::init(argc, argv, "crtk_test_servo_all");
-  static ros::NodeHandle n; 
+  static ros::NodeHandle n("~"); 
   ros::Rate loop_rate(LOOP_RATE); 
 
-  CRTK_robot robot(n);
+  std::string r_space;
+  if(!n.getParam("r_space", r_space))
+    ROS_ERROR("No Robot namespace provided in command line!");
+  CRTK_robot robot(n,r_space);
 
   int count = 0;
 

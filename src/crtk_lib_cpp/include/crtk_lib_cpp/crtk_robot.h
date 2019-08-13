@@ -51,7 +51,7 @@ class CRTK_robot{
     CRTK_robot_state state;
     CRTK_motion arm;
 
-    CRTK_robot(ros::NodeHandle n);
+    CRTK_robot(ros::NodeHandle n,std::string);
     ~CRTK_robot(){};
     bool init_param(ros::NodeHandle);
     bool init_ros(ros::NodeHandle);
@@ -70,7 +70,6 @@ class CRTK_robot{
   private:
     unsigned int max_joints; 
     std::string robot_name;
-    std::string arm_name;
     std::string grasper_name;
 
     ros::Subscriber sub_measured_cp;

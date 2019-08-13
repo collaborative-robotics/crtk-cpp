@@ -44,7 +44,7 @@ class CRTK_robot_state
 
   // methods
   CRTK_robot_state();
-  CRTK_robot_state(ros::NodeHandle n);
+  CRTK_robot_state(ros::NodeHandle n,std::string);
 
   ~CRTK_robot_state(){};
 
