@@ -114,7 +114,10 @@ int CRTK_motion::get_measured_js_pos(float out[MAX_JOINTS], int length){
   }
 
   for(int i=0; i<length; i++)
+  {
     out[i] = measured_js_pos[i];
+    ROS_INFO("start_jpos %d=%f",i,out[i]);
+  }
 
   return 1;
 }
@@ -741,7 +744,8 @@ char CRTK_motion::go_to_jpos(char mode_flag, int joint_index, float angle, time_
   {
     if(loop_count == 0)
       jp_out[i] = motion_start_js_pos[i];
-    jr_out[i] = 0;
+      jr_out[i] = 0;
+      jv_out[i] = 0;
   }
 
   float max_omega = 20 DEG_TO_RAD; // per second 
@@ -1100,7 +1104,7 @@ tf::Transform CRTK_motion::get_servo_cr_command(){
  * @return     The servo_cv command
  */
 tf::Transform CRTK_motion::get_servo_cv_command(){
-  return tf::Transform(servo_cr_command);
+  return tf::Transform(servo_cv_command);
 }
 
 
@@ -1238,7 +1242,7 @@ char CRTK_motion::send_servo_jv(float jpos_d[MAX_JOINTS]){
   for(int i=0;i<MAX_JOINTS;i++){
     step_angle = jpos_d[i];
     if(fabs(step_angle) > STEP_ROT_LIMIT * LOOP_RATE){ 
-      ROS_ERROR("Servo_jv velocity limit exceeded. Motion not sent.");
+      ROS_ERROR("Servo_jv velocity limit exceeded. Motion not sent. i=%d,(command:%f, threshold:%f)",i,step_angle,STEP_ROT_LIMIT * LOOP_RATE);
       reset_servo_jv_updated();
       return -1;
     }

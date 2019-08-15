@@ -350,7 +350,7 @@ void CRTK_robot::publish_servo_jv_grasp(){
 
   msg.header.stamp = msg.header.stamp.now();
   float cmd = arm.get_servo_jv_grasp_command(); 
-  msg.position.push_back(cmd);
+  msg.velocity.push_back(cmd);
   msg.name.push_back("grasp");
 
   pub_servo_jv_grasp.publish(msg);
@@ -393,7 +393,7 @@ void CRTK_robot::publish_servo_jv(){
   arm.get_servo_jv_command(cmd, MAX_JOINTS); 
 
   for(int j=0;j<MAX_JOINTS;j++)
-    msg.position.push_back(cmd[j]);
+    msg.velocity.push_back(cmd[j]);
     
     pub_servo_jv.publish(msg);
     arm.reset_servo_jv_updated();
