@@ -40,15 +40,24 @@
 int servo_testing(CRTK_robot*, time_t);
 
 
-// 6-1 Relative joint test (command: servo_jv) 
-// (functionality) move 10 degrees in the shoulder and tool joints
-//    Pass: Ask user
-int test_6_1(CRTK_robot *, time_t);
+// 7-1 Relative (command: servo_cv) Axis motion Test
+// (functionality) move along X axis for 2 secs (both arms)
+// 		Pass: Check raven state
+// (functionality) move along Y axis for 2 secs (both arms)
+// 		Pass: Check raven state
+// (functionality) move along Z axis for 2 secs (both arms)
+// 		Pass: Check raven state
+int test_7_1(CRTK_robot *, time_t);
 
 
-// 6-2 Go home (command: servo_jv) 
-// (functionality) move back to home pose (both arms)
-//    Pass: Ask user
-int test_6_2(CRTK_robot *, time_t);
+// 7-2 Relative (command: servo_cv) Cube tracing Test
+// (functionality) Trace a cube
+//    Pass: Ask user!
+int test_7_2(CRTK_robot *, time_t);
+ 
+// 7-3 Relative (command: servo_cv) Orientation axis test
+// (functionality) rotate about X,Y,Z axis for 1 secs (30 deg)
+// Pass: ask user!
+int test_7_3(CRTK_robot *, time_t);
 
 #endif

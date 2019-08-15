@@ -25,7 +25,7 @@
  * \brief Class file for CRTK API state and status flags
  *              
  *
- * \date Oct 29, 2018
+ * \date Aug 14, 2019
  * \author Andrew Lewis
  * \author Melody Yun-Hsuan Su
  *

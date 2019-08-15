@@ -64,11 +64,14 @@ public:
   int set_measured_js_eff(float*, int);
 
   char send_servo_cr_time(tf::Vector3,float,float,time_t);
+  char send_servo_cv_time(tf::Vector3,float,float,time_t);
   char send_servo_cp_distance(tf::Vector3,float,time_t);
   char send_servo_cr_rot_time(tf::Vector3,float,float,time_t);
+  char send_servo_cv_rot_time(tf::Vector3,float,float,time_t);
   char send_servo_cp_rot_angle(tf::Vector3,float,time_t);
 
   char send_servo_cr(tf::Transform);
+  char send_servo_cv(tf::Transform);
   char send_servo_cp(tf::Transform);
   char send_servo_jr(float*);
   char send_servo_jp(float*);
@@ -77,6 +80,7 @@ public:
   char send_servo_jv_grasp(float);
 
   void reset_servo_cr_updated();
+  void reset_servo_cv_updated();
   void reset_servo_cp_updated();
   void reset_servo_jr_updated();
   void reset_servo_jp_updated();
@@ -92,9 +96,11 @@ public:
   char get_servo_jp_grasp_updated();
   char get_servo_jv_grasp_updated();
   char get_servo_cr_updated();
+  char get_servo_cv_updated();
   char get_servo_cp_updated();
 
   tf::Transform get_servo_cr_command();
+  tf::Transform get_servo_cv_command();
   tf::Transform get_servo_cp_command();
   void get_servo_jr_command(float*, int);
   void get_servo_jp_command(float*, int);
@@ -132,6 +138,7 @@ private:
   float measured_js_eff[MAX_JOINTS];
 
   tf::Transform servo_cr_command;
+  tf::Transform servo_cv_command;
   tf::Transform servo_cp_command;
   float servo_jr_grasp_command;
   float servo_jp_grasp_command;
@@ -141,6 +148,7 @@ private:
   float servo_jv_command[MAX_JOINTS];
 
   char servo_cr_updated;
+  char servo_cv_updated;
   char servo_cp_updated;
   char servo_jr_updated;
   char servo_jp_updated;

@@ -40,6 +40,7 @@ CRTK_motion::CRTK_motion(){
 
   servo_cr_updated = 0;
   servo_cp_updated = 0;
+  servo_cv_updated = 0;
   servo_jr_updated = 0;
   servo_jp_updated = 0;
   servo_jv_updated = 0;
@@ -370,6 +371,55 @@ char CRTK_motion::send_servo_cr_time(tf::Vector3 vec, float total_dist, float du
   }
   return out;
 }  
+
+
+/**
+ * @brief      Sends a servo_cv time. (Must call start_motion function first)
+ *
+ * @param[in]  vec         The vector
+ * @param[in]  total_dist  The total distance
+ * @param[in]  duration    The duration
+ * @param[in]  curr_time   The curr time
+ *
+ * @return     success 1, fail -1
+ */
+char CRTK_motion::send_servo_cv_time(tf::Vector3 vec, float total_dist, float duration, time_t curr_time){
+  // static char start = 1;
+  char out=0;
+  float step = total_dist/(duration*LOOP_RATE);
+
+  if(duration <= 0 || total_dist <= 0){
+    ROS_ERROR("Duration and distance should be positive.");
+    return -1;    
+  }
+  if(step > 0.001){
+    ROS_ERROR("Step size is too big.");
+    return -1;
+  }
+
+  // send command
+  if(!vec.normalized()){
+    vec = vec.normalize();
+    ROS_INFO("Servo_cv direction not normalized. (set to normalized)");
+  }
+  tf::Transform tf_out = tf::Transform();
+  tf_out.setIdentity();
+  tf_out.setOrigin(vec*step*LOOP_RATE);
+  out = send_servo_cv(tf_out);
+
+  // check time
+  if(curr_time - motion_start_time > duration){
+    ROS_INFO("%f sec movement complete.",duration);
+    
+    //at end of time, send 0 command
+    tf::Transform ident = tf::Transform();
+    // ident.setIdentity();
+    // out = send_servo_cv(ident);
+    return 1;
+  }
+  return out;
+}  
+
 
 /**
  * @brief      Sends a servo_cp distance. (Must call start_motion function first)
@@ -832,6 +882,52 @@ char CRTK_motion::send_servo_cr_rot_time(tf::Vector3 vec, float total_angle, flo
   return out;
 }  
 
+
+/**
+ * @brief      Sends a servo_cv increment for a given time. (Must call start_motion
+ *             function first)
+ *
+ * @param[in]  vec          The rotation vector
+ * @param[in]  total_angle  The total angle (radian)
+ * @param[in]  duration     The duration
+ * @param[in]  curr_time    The curr time
+ *
+ * @return     success 1, fail -1
+ */
+char CRTK_motion::send_servo_cv_rot_time(tf::Vector3 vec, float total_angle, float duration, time_t curr_time){
+  // static char start = 1;
+  char out=0;
+  float step = total_angle/(duration*LOOP_RATE);
+
+  if(duration <= 0){
+    ROS_ERROR("Duration should be positive.");
+    return -1;    
+  }
+  if(step > 0.001){
+    ROS_ERROR("Step size is too big.");
+    return -1;
+  }
+
+  // send command
+  if(!vec.normalized()){
+    vec = vec.normalize();
+    ROS_INFO("Servo_cv rot direction not normalized. (set to normalized)");
+  }
+
+  tf::Quaternion out_qua = tf::Quaternion(vec,step*LOOP_RATE);
+  out = send_servo_cv(tf::Transform(out_qua));
+
+
+  // check time
+  if(curr_time - motion_start_time > duration){
+    ROS_INFO("%f sec movement complete.",duration);
+
+    return 1;
+  }
+  return out;
+}  
+
+
 /**
  * @brief      Sends a servo_cp rotation over a given distance. (Must call start_motion
  *             function first)
@@ -917,11 +1013,51 @@ char CRTK_motion::send_servo_cr(tf::Transform trans){
 
 
 /**
+ * @brief      Sends a servo carriage return.
+ *
+ * @param[in]  trans  The transaction
+ *
+ * @return     success 0, fail -1
+ */
+char CRTK_motion::send_servo_cv(tf::Transform trans){
+  // check command
+  tf::Vector3 vec = trans.getOrigin();
+  float ang = trans.getRotation().getAngle();
+  if(vec.length() > STEP_TRANS_LIMIT*LOOP_RATE || ang > STEP_ROT_LIMIT*LOOP_RATE){
+    ROS_ERROR("Servo_cv step limit exceeded. Motion not sent.");
+    reset_servo_cv_updated();
+    return -1;
+  }
+  double det = trans.getBasis().determinant();
+  if(det <1){
+    ROS_ERROR("Determinenant of servo_cv is %f instead of 1", det);
+    return -1;
+  }
+
+  // send command
+  servo_cv_updated = 1;
+  servo_cv_command = trans;
+
+  return 0;
+}
+
+
+
+/**
  * @brief      reset servo_cr updated flag
  */
 void CRTK_motion::reset_servo_cr_updated(){
   servo_cr_command = tf::Transform();
   servo_cr_updated = 0;
+}
+
+
+/**
+ * @brief      reset servo_cv updated flag
+ */
+void CRTK_motion::reset_servo_cv_updated(){
+  servo_cv_command = tf::Transform();
+  servo_cv_updated = 0;
 }
 
 
@@ -938,11 +1074,32 @@ char CRTK_motion::get_servo_cr_updated(){
 
 
 /**
+ * @brief      Checks the servo_cv updated flag.
+ *
+ * @return     The servo_cv updated flag value.
+ */
+char CRTK_motion::get_servo_cv_updated(){
+  return servo_cv_updated;
+}
+
+
+/**
  * @brief      Gets the servo_cr motion command.
  *
  * @return     The servo_cr command
  */
 tf::Transform CRTK_motion::get_servo_cr_command(){
+  return tf::Transform(servo_cr_command);
+}
+
+
+
+/**
+ * @brief      Gets the servo_cv motion command.
+ *
+ * @return     The servo_cv command
+ */
+tf::Transform CRTK_motion::get_servo_cv_command(){
   return tf::Transform(servo_cr_command);
 }
 

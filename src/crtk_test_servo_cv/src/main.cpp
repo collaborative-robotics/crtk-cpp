@@ -59,7 +59,6 @@ using namespace std;
  */
 
 
-
 /**
  * @brief      The main function
  *
