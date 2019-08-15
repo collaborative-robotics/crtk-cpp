@@ -42,8 +42,10 @@ CRTK_motion::CRTK_motion(){
   servo_cp_updated = 0;
   servo_jr_updated = 0;
   servo_jp_updated = 0;
+  servo_jv_updated = 0;
   servo_jr_grasp_updated = 0;
   servo_jp_grasp_updated = 0;
+  servo_jv_grasp_updated = 0;
 
   home_pos_set = 0;
   home_jpos_set = 0;
@@ -549,12 +551,14 @@ char CRTK_motion::go_to_pos(tf::Transform end, time_t curr_time){
 /**
  * @brief      go to a desired jpos (for all joints)
  *
- * @param      jpos_d     The jpos desired
- * @param[in]  curr_time  The curr time
+ * @param[in]  mode_flag      1 for _jp; 0 for _jr; 2 for _jv
+ * @param      jpos_d         The jpos desired
+ * @param[in]  curr_time      The curr time
+ * @param[in]  length         The length
  *
  * @return     success
  */
-char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time, int length)
+char CRTK_motion::go_to_jpos(char mode_flag, float* jpos_d, time_t curr_time, int length)
 {
   static int loop_count = 0;
   static float diff[MAX_JOINTS];
@@ -565,6 +569,7 @@ char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time
   float scale;
 
   float jr_out[MAX_JOINTS];
+  float jv_out[MAX_JOINTS];
   static float jp_out[MAX_JOINTS];
 
 
@@ -628,9 +633,10 @@ char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time
   for(int i=0;i<length;i++)
   {
     jr_out[i] = step[i]*scale;
+    jv_out[i] = (float)LOOP_RATE * jr_out[i];
   }
 
-  if(absolute_flag)
+  if(mode_flag == char(1))
   {
     for(int i=0;i<length;i++)
     {
@@ -638,9 +644,17 @@ char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time
     }
     out = send_servo_jp(jp_out);
   }
-  else
+  else if(mode_flag == char(0))
   {
     out = send_servo_jr(jr_out);
+  }
+  else if(mode_flag == (char)2)
+  {
+    out = send_servo_jv(jv_out);
+  }
+  else
+  {
+    ROS_ERROR("go_to_jpos: unrecognized mode. Motion not sent!");
   }
 
   loop_count++;
@@ -655,14 +669,14 @@ char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time
 /**
  * @brief      desired joint position (for a single joint)
  *
- * @param[in]  absolute_flag  The absolute command is used
+ * @param[in]  mode_flag      1 for _jp; 0 for _jr; 2 for _jv
  * @param[in]  joint_index    The joint index
  * @param[in]  angle          The angle in degrees or linear distance in meters
  * @param[in]  curr_time      The curr time
  *
  * @return     success
  */
-char CRTK_motion::go_to_jpos(char absolute_flag, int joint_index, float angle, time_t curr_time){
+char CRTK_motion::go_to_jpos(char mode_flag, int joint_index, float angle, time_t curr_time){
   
 
   static int loop_count = 0;
@@ -670,6 +684,7 @@ char CRTK_motion::go_to_jpos(char absolute_flag, int joint_index, float angle, t
 
   float duration_loops;
   float jr_out[MAX_JOINTS];
+  float jv_out[MAX_JOINTS];
   static float jp_out[MAX_JOINTS];
 
   for(int i=0;i<MAX_JOINTS;i++)
@@ -711,12 +726,18 @@ char CRTK_motion::go_to_jpos(char absolute_flag, int joint_index, float angle, t
   if(joint_index >= 0 && joint_index < MAX_JOINTS)
   {
     if(is_prismatic(joint_index))
+    {
       jr_out[joint_index] = -pris_step*scale;
+      jv_out[joint_index] = (float)LOOP_RATE * jr_out[joint_index];
+    }
     else
+    {
       jr_out[joint_index] = rot_step*scale;
+      jv_out[joint_index] = (float)LOOP_RATE * jr_out[joint_index];
+    }
   }
 
-  if(absolute_flag)
+  if(mode_flag == (char)1)
   {
     for(int i=0;i<MAX_JOINTS;i++)
     {
@@ -725,9 +746,17 @@ char CRTK_motion::go_to_jpos(char absolute_flag, int joint_index, float angle, t
     }
     out = send_servo_jp(jp_out);
   }
-  else
+  else if(mode_flag == (char)0)
   {
     out = send_servo_jr(jr_out);
+  }
+  else if(mode_flag == (char)2)
+  {
+    out = send_servo_jv(jv_out);
+  }
+  else
+  {
+    ROS_ERROR("go_to_jpos: unrecognized mode. Motion not sent!");
   }
 
   loop_count++;
@@ -1040,6 +1069,35 @@ char CRTK_motion::send_servo_jp(float jpos_d[MAX_JOINTS]){
 
 
 /**
+ * @brief      Sends a servo jv motion command.
+ *
+ * @param      jpos_d  The desired jpos
+ *
+ * @return     success 0, fail -1
+ */
+char CRTK_motion::send_servo_jv(float jpos_d[MAX_JOINTS]){
+
+  float step_angle;
+  for(int i=0;i<MAX_JOINTS;i++){
+    step_angle = jpos_d[i];
+    if(fabs(step_angle) > STEP_ROT_LIMIT * LOOP_RATE){ 
+      ROS_ERROR("Servo_jv velocity limit exceeded. Motion not sent.");
+      reset_servo_jv_updated();
+      return -1;
+    }
+  }
+  
+  // send command
+  servo_jv_updated = 1;
+  for(int i=0;i<MAX_JOINTS;i++)
+    servo_jv_command[i] = jpos_d[i];
+  return 0;
+}
+
+
+
+
+/**
  * @brief      Sends a servo jr grasp.
  *
  * @param[in]  step_angle  The step angle
@@ -1063,6 +1121,29 @@ char CRTK_motion::send_servo_jr_grasp(float step_angle){
 
 
 /**
+ * @brief      Sends a servo jv grasp.
+ *
+ * @param[in]  step_angle  The step angle
+ *
+ * @return     success 0, fail -1
+ */
+char CRTK_motion::send_servo_jv_grasp(float step_angle){
+
+  
+  if(fabs(step_angle) > STEP_ROT_LIMIT * LOOP_RATE){ 
+    ROS_ERROR("Servo_jv_grasp velocity limit exceeded. Motion not sent.");
+    reset_servo_jv_grasp_updated();
+    return -1;
+  }
+  // send command
+  servo_jv_grasp_updated = 1;
+  servo_jv_grasp_command = step_angle;
+  return 0;
+}
+
+
+
+/**
  * @brief      resets the servo_jr updated flag
  */
 void CRTK_motion::reset_servo_jr_updated(){
@@ -1080,6 +1161,14 @@ void CRTK_motion::reset_servo_jp_updated(){
 
 
 /**
+ * @brief      Resets the servo_jv updated flag
+ */
+void CRTK_motion::reset_servo_jv_updated(){
+  servo_jv_updated = 0;
+}
+
+
+/**
  * @brief      Resets the servo_jr grasper updated flag
  */
 void CRTK_motion::reset_servo_jr_grasp_updated(){
@@ -1093,6 +1182,14 @@ void CRTK_motion::reset_servo_jr_grasp_updated(){
  */
 void CRTK_motion::reset_servo_jp_grasp_updated(){
   servo_jp_grasp_updated = 0;
+}
+
+
+/**
+ * @brief      Resets servo jv grasper updated flag
+ */
+void CRTK_motion::reset_servo_jv_grasp_updated(){
+  servo_jv_grasp_updated = 0;
 }
 
 
@@ -1117,6 +1214,16 @@ char CRTK_motion::get_servo_jp_updated(){
 }
 
 
+/**
+ * @brief      Gets the servo jv updated flag.
+ *
+ * @return     The servo jv updated.
+ */
+char CRTK_motion::get_servo_jv_updated(){
+  return servo_jv_updated;
+}
+
+
 
 /**
  * @brief      Gets the servo jr grasper updated flag.
@@ -1125,6 +1232,17 @@ char CRTK_motion::get_servo_jp_updated(){
  */
 char CRTK_motion::get_servo_jr_grasp_updated(){
   return servo_jr_grasp_updated;
+}
+
+
+
+/**
+ * @brief      Gets the servo jv grasper updated.
+ *
+ * @return     The servo jv grasp updated.
+ */
+char CRTK_motion::get_servo_jv_grasp_updated(){
+  return servo_jv_grasp_updated;
 }
 
 
@@ -1163,6 +1281,17 @@ float CRTK_motion::get_servo_jp_grasp_command(){
 
 
 /**
+ * @brief      Gets the servo jv grasper command.
+ *
+ * @return     The servo jv grasper command.
+ */
+float CRTK_motion::get_servo_jv_grasp_command(){
+  return servo_jv_grasp_command;
+}
+
+
+
+/**
  * @brief      Gets the servo jr command.
  *
  * @param      out     The output jr command array
@@ -1184,6 +1313,18 @@ void CRTK_motion::get_servo_jr_command(float* out, int length){
 void CRTK_motion::get_servo_jp_command(float* out, int length){
   for(int i=0;i<length;i++)
    out[i] = servo_jp_command[i];
+}
+
+
+/**
+ * @brief      Gets the servo jv command.
+ *
+ * @param      out     The out jv command array
+ * @param[in]  length  The length
+ */
+void CRTK_motion::get_servo_jv_command(float* out, int length){
+  for(int i=0;i<length;i++)
+   out[i] = servo_jv_command[i];
 }
 
 
