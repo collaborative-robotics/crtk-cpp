@@ -61,11 +61,14 @@ class CRTK_robot{
 
     void check_motion_commands_to_publish();
     void publish_servo_cr();
+    void publish_servo_cv();
     void publish_servo_cp();
     void publish_servo_jr_grasp();
     void publish_servo_jr();
     void publish_servo_jp_grasp();
     void publish_servo_jp();
+    void publish_servo_jv_grasp();
+    void publish_servo_jv();
     void run();
   private:
     unsigned int max_joints; 
@@ -77,9 +80,12 @@ class CRTK_robot{
 
     ros::Publisher pub_servo_cr;
     ros::Publisher pub_servo_cp;
+    ros::Publisher pub_servo_cv;
     ros::Publisher pub_servo_jr;
+    ros::Publisher pub_servo_jv;
     ros::Publisher pub_servo_jp;
     ros::Publisher pub_servo_jr_grasp;
+    ros::Publisher pub_servo_jv_grasp;
     ros::Publisher pub_servo_jp_grasp;
 };
 

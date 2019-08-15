@@ -40,10 +40,13 @@ CRTK_motion::CRTK_motion(){
 
   servo_cr_updated = 0;
   servo_cp_updated = 0;
+  servo_cv_updated = 0;
   servo_jr_updated = 0;
   servo_jp_updated = 0;
+  servo_jv_updated = 0;
   servo_jr_grasp_updated = 0;
   servo_jp_grasp_updated = 0;
+  servo_jv_grasp_updated = 0;
 
   home_pos_set = 0;
   home_jpos_set = 0;
@@ -111,7 +114,10 @@ int CRTK_motion::get_measured_js_pos(float out[MAX_JOINTS], int length){
   }
 
   for(int i=0; i<length; i++)
+  {
     out[i] = measured_js_pos[i];
+    ROS_INFO("start_jpos %d=%f",i,out[i]);
+  }
 
   return 1;
 }
@@ -369,6 +375,55 @@ char CRTK_motion::send_servo_cr_time(tf::Vector3 vec, float total_dist, float du
   return out;
 }  
 
+
+/**
+ * @brief      Sends a servo_cv time. (Must call start_motion function first)
+ *
+ * @param[in]  vec         The vector
+ * @param[in]  total_dist  The total distance
+ * @param[in]  duration    The duration
+ * @param[in]  curr_time   The curr time
+ *
+ * @return     success 1, fail -1
+ */
+char CRTK_motion::send_servo_cv_time(tf::Vector3 vec, float total_dist, float duration, time_t curr_time){
+  // static char start = 1;
+  char out=0;
+  float step = total_dist/(duration*LOOP_RATE);
+
+  if(duration <= 0 || total_dist <= 0){
+    ROS_ERROR("Duration and distance should be positive.");
+    return -1;    
+  }
+  if(step > 0.001){
+    ROS_ERROR("Step size is too big.");
+    return -1;
+  }
+
+  // send command
+  if(!vec.normalized()){
+    vec = vec.normalize();
+    ROS_INFO("Servo_cv direction not normalized. (set to normalized)");
+  }
+  tf::Transform tf_out = tf::Transform();
+  tf_out.setIdentity();
+  tf_out.setOrigin(vec*step*LOOP_RATE);
+  out = send_servo_cv(tf_out);
+
+  // check time
+  if(curr_time - motion_start_time > duration){
+    ROS_INFO("%f sec movement complete.",duration);
+    
+    //at end of time, send 0 command
+    tf::Transform ident = tf::Transform();
+    // ident.setIdentity();
+    // out = send_servo_cv(ident);
+    return 1;
+  }
+  return out;
+}  
+
+
 /**
  * @brief      Sends a servo_cp distance. (Must call start_motion function first)
  * 
@@ -549,12 +604,14 @@ char CRTK_motion::go_to_pos(tf::Transform end, time_t curr_time){
 /**
  * @brief      go to a desired jpos (for all joints)
  *
- * @param      jpos_d     The jpos desired
- * @param[in]  curr_time  The curr time
+ * @param[in]  mode_flag      1 for _jp; 0 for _jr; 2 for _jv
+ * @param      jpos_d         The jpos desired
+ * @param[in]  curr_time      The curr time
+ * @param[in]  length         The length
  *
  * @return     success
  */
-char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time, int length)
+char CRTK_motion::go_to_jpos(char mode_flag, float* jpos_d, time_t curr_time, int length)
 {
   static int loop_count = 0;
   static float diff[MAX_JOINTS];
@@ -565,6 +622,7 @@ char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time
   float scale;
 
   float jr_out[MAX_JOINTS];
+  float jv_out[MAX_JOINTS];
   static float jp_out[MAX_JOINTS];
 
 
@@ -628,9 +686,10 @@ char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time
   for(int i=0;i<length;i++)
   {
     jr_out[i] = step[i]*scale;
+    jv_out[i] = (float)LOOP_RATE * jr_out[i];
   }
 
-  if(absolute_flag)
+  if(mode_flag == char(1))
   {
     for(int i=0;i<length;i++)
     {
@@ -638,9 +697,17 @@ char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time
     }
     out = send_servo_jp(jp_out);
   }
-  else
+  else if(mode_flag == char(0))
   {
     out = send_servo_jr(jr_out);
+  }
+  else if(mode_flag == (char)2)
+  {
+    out = send_servo_jv(jv_out);
+  }
+  else
+  {
+    ROS_ERROR("go_to_jpos: unrecognized mode. Motion not sent!");
   }
 
   loop_count++;
@@ -655,14 +722,14 @@ char CRTK_motion::go_to_jpos(char absolute_flag, float* jpos_d, time_t curr_time
 /**
  * @brief      desired joint position (for a single joint)
  *
- * @param[in]  absolute_flag  The absolute command is used
+ * @param[in]  mode_flag      1 for _jp; 0 for _jr; 2 for _jv
  * @param[in]  joint_index    The joint index
  * @param[in]  angle          The angle in degrees or linear distance in meters
  * @param[in]  curr_time      The curr time
  *
  * @return     success
  */
-char CRTK_motion::go_to_jpos(char absolute_flag, int joint_index, float angle, time_t curr_time){
+char CRTK_motion::go_to_jpos(char mode_flag, int joint_index, float angle, time_t curr_time){
   
 
   static int loop_count = 0;
@@ -670,13 +737,15 @@ char CRTK_motion::go_to_jpos(char absolute_flag, int joint_index, float angle, t
 
   float duration_loops;
   float jr_out[MAX_JOINTS];
+  float jv_out[MAX_JOINTS];
   static float jp_out[MAX_JOINTS];
 
   for(int i=0;i<MAX_JOINTS;i++)
   {
     if(loop_count == 0)
       jp_out[i] = motion_start_js_pos[i];
-    jr_out[i] = 0;
+      jr_out[i] = 0;
+      jv_out[i] = 0;
   }
 
   float max_omega = 20 DEG_TO_RAD; // per second 
@@ -711,12 +780,18 @@ char CRTK_motion::go_to_jpos(char absolute_flag, int joint_index, float angle, t
   if(joint_index >= 0 && joint_index < MAX_JOINTS)
   {
     if(is_prismatic(joint_index))
+    {
       jr_out[joint_index] = -pris_step*scale;
+      jv_out[joint_index] = (float)LOOP_RATE * jr_out[joint_index];
+    }
     else
+    {
       jr_out[joint_index] = rot_step*scale;
+      jv_out[joint_index] = (float)LOOP_RATE * jr_out[joint_index];
+    }
   }
 
-  if(absolute_flag)
+  if(mode_flag == (char)1)
   {
     for(int i=0;i<MAX_JOINTS;i++)
     {
@@ -725,9 +800,17 @@ char CRTK_motion::go_to_jpos(char absolute_flag, int joint_index, float angle, t
     }
     out = send_servo_jp(jp_out);
   }
-  else
+  else if(mode_flag == (char)0)
   {
     out = send_servo_jr(jr_out);
+  }
+  else if(mode_flag == (char)2)
+  {
+    out = send_servo_jv(jv_out);
+  }
+  else
+  {
+    ROS_ERROR("go_to_jpos: unrecognized mode. Motion not sent!");
   }
 
   loop_count++;
@@ -802,6 +885,52 @@ char CRTK_motion::send_servo_cr_rot_time(tf::Vector3 vec, float total_angle, flo
   }
   return out;
 }  
+
+
+/**
+ * @brief      Sends a servo_cv increment for a given time. (Must call start_motion
+ *             function first)
+ *
+ * @param[in]  vec          The rotation vector
+ * @param[in]  total_angle  The total angle (radian)
+ * @param[in]  duration     The duration
+ * @param[in]  curr_time    The curr time
+ *
+ * @return     success 1, fail -1
+ */
+char CRTK_motion::send_servo_cv_rot_time(tf::Vector3 vec, float total_angle, float duration, time_t curr_time){
+  // static char start = 1;
+  char out=0;
+  float step = total_angle/(duration*LOOP_RATE);
+
+  if(duration <= 0){
+    ROS_ERROR("Duration should be positive.");
+    return -1;    
+  }
+  if(step > 0.001){
+    ROS_ERROR("Step size is too big.");
+    return -1;
+  }
+
+  // send command
+  if(!vec.normalized()){
+    vec = vec.normalize();
+    ROS_INFO("Servo_cv rot direction not normalized. (set to normalized)");
+  }
+
+  tf::Quaternion out_qua = tf::Quaternion(vec,step*LOOP_RATE);
+  out = send_servo_cv(tf::Transform(out_qua));
+
+
+  // check time
+  if(curr_time - motion_start_time > duration){
+    ROS_INFO("%f sec movement complete.",duration);
+
+    return 1;
+  }
+  return out;
+}  
+
 
 /**
  * @brief      Sends a servo_cp rotation over a given distance. (Must call start_motion
@@ -888,11 +1017,51 @@ char CRTK_motion::send_servo_cr(tf::Transform trans){
 
 
 /**
+ * @brief      Sends a servo carriage return.
+ *
+ * @param[in]  trans  The transaction
+ *
+ * @return     success 0, fail -1
+ */
+char CRTK_motion::send_servo_cv(tf::Transform trans){
+  // check command
+  tf::Vector3 vec = trans.getOrigin();
+  float ang = trans.getRotation().getAngle();
+  if(vec.length() > STEP_TRANS_LIMIT*LOOP_RATE || ang > STEP_ROT_LIMIT*LOOP_RATE){
+    ROS_ERROR("Servo_cv step limit exceeded. Motion not sent.");
+    reset_servo_cv_updated();
+    return -1;
+  }
+  double det = trans.getBasis().determinant();
+  if(det <1){
+    ROS_ERROR("Determinenant of servo_cv is %f instead of 1", det);
+    return -1;
+  }
+
+  // send command
+  servo_cv_updated = 1;
+  servo_cv_command = trans;
+
+  return 0;
+}
+
+
+
+/**
  * @brief      reset servo_cr updated flag
  */
 void CRTK_motion::reset_servo_cr_updated(){
   servo_cr_command = tf::Transform();
   servo_cr_updated = 0;
+}
+
+
+/**
+ * @brief      reset servo_cv updated flag
+ */
+void CRTK_motion::reset_servo_cv_updated(){
+  servo_cv_command = tf::Transform();
+  servo_cv_updated = 0;
 }
 
 
@@ -909,12 +1078,33 @@ char CRTK_motion::get_servo_cr_updated(){
 
 
 /**
+ * @brief      Checks the servo_cv updated flag.
+ *
+ * @return     The servo_cv updated flag value.
+ */
+char CRTK_motion::get_servo_cv_updated(){
+  return servo_cv_updated;
+}
+
+
+/**
  * @brief      Gets the servo_cr motion command.
  *
  * @return     The servo_cr command
  */
 tf::Transform CRTK_motion::get_servo_cr_command(){
   return tf::Transform(servo_cr_command);
+}
+
+
+
+/**
+ * @brief      Gets the servo_cv motion command.
+ *
+ * @return     The servo_cv command
+ */
+tf::Transform CRTK_motion::get_servo_cv_command(){
+  return tf::Transform(servo_cv_command);
 }
 
 
@@ -1040,6 +1230,35 @@ char CRTK_motion::send_servo_jp(float jpos_d[MAX_JOINTS]){
 
 
 /**
+ * @brief      Sends a servo jv motion command.
+ *
+ * @param      jpos_d  The desired jpos
+ *
+ * @return     success 0, fail -1
+ */
+char CRTK_motion::send_servo_jv(float jpos_d[MAX_JOINTS]){
+
+  float step_angle;
+  for(int i=0;i<MAX_JOINTS;i++){
+    step_angle = jpos_d[i];
+    if(fabs(step_angle) > STEP_ROT_LIMIT * LOOP_RATE){ 
+      ROS_ERROR("Servo_jv velocity limit exceeded. Motion not sent. i=%d,(command:%f, threshold:%f)",i,step_angle,STEP_ROT_LIMIT * LOOP_RATE);
+      reset_servo_jv_updated();
+      return -1;
+    }
+  }
+  
+  // send command
+  servo_jv_updated = 1;
+  for(int i=0;i<MAX_JOINTS;i++)
+    servo_jv_command[i] = jpos_d[i];
+  return 0;
+}
+
+
+
+
+/**
  * @brief      Sends a servo jr grasp.
  *
  * @param[in]  step_angle  The step angle
@@ -1063,6 +1282,29 @@ char CRTK_motion::send_servo_jr_grasp(float step_angle){
 
 
 /**
+ * @brief      Sends a servo jv grasp.
+ *
+ * @param[in]  step_angle  The step angle
+ *
+ * @return     success 0, fail -1
+ */
+char CRTK_motion::send_servo_jv_grasp(float step_angle){
+
+  
+  if(fabs(step_angle) > STEP_ROT_LIMIT * LOOP_RATE){ 
+    ROS_ERROR("Servo_jv_grasp velocity limit exceeded. Motion not sent.");
+    reset_servo_jv_grasp_updated();
+    return -1;
+  }
+  // send command
+  servo_jv_grasp_updated = 1;
+  servo_jv_grasp_command = step_angle;
+  return 0;
+}
+
+
+
+/**
  * @brief      resets the servo_jr updated flag
  */
 void CRTK_motion::reset_servo_jr_updated(){
@@ -1080,6 +1322,14 @@ void CRTK_motion::reset_servo_jp_updated(){
 
 
 /**
+ * @brief      Resets the servo_jv updated flag
+ */
+void CRTK_motion::reset_servo_jv_updated(){
+  servo_jv_updated = 0;
+}
+
+
+/**
  * @brief      Resets the servo_jr grasper updated flag
  */
 void CRTK_motion::reset_servo_jr_grasp_updated(){
@@ -1093,6 +1343,14 @@ void CRTK_motion::reset_servo_jr_grasp_updated(){
  */
 void CRTK_motion::reset_servo_jp_grasp_updated(){
   servo_jp_grasp_updated = 0;
+}
+
+
+/**
+ * @brief      Resets servo jv grasper updated flag
+ */
+void CRTK_motion::reset_servo_jv_grasp_updated(){
+  servo_jv_grasp_updated = 0;
 }
 
 
@@ -1117,6 +1375,16 @@ char CRTK_motion::get_servo_jp_updated(){
 }
 
 
+/**
+ * @brief      Gets the servo jv updated flag.
+ *
+ * @return     The servo jv updated.
+ */
+char CRTK_motion::get_servo_jv_updated(){
+  return servo_jv_updated;
+}
+
+
 
 /**
  * @brief      Gets the servo jr grasper updated flag.
@@ -1125,6 +1393,17 @@ char CRTK_motion::get_servo_jp_updated(){
  */
 char CRTK_motion::get_servo_jr_grasp_updated(){
   return servo_jr_grasp_updated;
+}
+
+
+
+/**
+ * @brief      Gets the servo jv grasper updated.
+ *
+ * @return     The servo jv grasp updated.
+ */
+char CRTK_motion::get_servo_jv_grasp_updated(){
+  return servo_jv_grasp_updated;
 }
 
 
@@ -1163,6 +1442,17 @@ float CRTK_motion::get_servo_jp_grasp_command(){
 
 
 /**
+ * @brief      Gets the servo jv grasper command.
+ *
+ * @return     The servo jv grasper command.
+ */
+float CRTK_motion::get_servo_jv_grasp_command(){
+  return servo_jv_grasp_command;
+}
+
+
+
+/**
  * @brief      Gets the servo jr command.
  *
  * @param      out     The output jr command array
@@ -1184,6 +1474,18 @@ void CRTK_motion::get_servo_jr_command(float* out, int length){
 void CRTK_motion::get_servo_jp_command(float* out, int length){
   for(int i=0;i<length;i++)
    out[i] = servo_jp_command[i];
+}
+
+
+/**
+ * @brief      Gets the servo jv command.
+ *
+ * @param      out     The out jv command array
+ * @param[in]  length  The length
+ */
+void CRTK_motion::get_servo_jv_command(float* out, int length){
+  for(int i=0;i<length;i++)
+   out[i] = servo_jv_command[i];
 }
 
 

@@ -147,14 +147,23 @@ bool CRTK_robot::init_ros(ros::NodeHandle n){
   topic = "/" + robot_name + "/servo_cp";
   pub_servo_cp = n.advertise<geometry_msgs::TransformStamped>(topic, 1);
 
+  topic = "/" + robot_name + "/servo_cv";
+  pub_servo_cv = n.advertise<geometry_msgs::TransformStamped>(topic, 1);
+
   topic = "/" + robot_name + "/servo_jr";
   pub_servo_jr = n.advertise<sensor_msgs::JointState>(topic, 1);
+
+  topic = "/" + robot_name + "/servo_jv";
+  pub_servo_jv = n.advertise<sensor_msgs::JointState>(topic, 1);
 
   topic = "/" + robot_name + "/servo_jp";
   pub_servo_jp = n.advertise<sensor_msgs::JointState>(topic, 1);
 
   topic = "/" + grasper_name + "/servo_jr";
   pub_servo_jr_grasp = n.advertise<sensor_msgs::JointState>(topic, 1);
+
+  topic = "/" + grasper_name + "/servo_jv";
+  pub_servo_jv_grasp = n.advertise<sensor_msgs::JointState>(topic, 1);
 
   topic = "/" + grasper_name + "/servo_jp";
   pub_servo_jp_grasp = n.advertise<sensor_msgs::JointState>(topic, 1);
@@ -230,6 +239,10 @@ void CRTK_robot::check_motion_commands_to_publish(){
     publish_servo_cp();
   }  
 
+  else if(arm.get_servo_cv_updated()){ 
+    publish_servo_cv();
+  }  
+
   else if(arm.get_servo_jr_updated()){
     publish_servo_jr();
   }
@@ -242,6 +255,13 @@ void CRTK_robot::check_motion_commands_to_publish(){
   }
   else if(arm.get_servo_jp_grasp_updated()){
     publish_servo_jp_grasp();
+  }
+
+  else if(arm.get_servo_jv_updated()){
+    publish_servo_jv();
+  }
+  else if(arm.get_servo_jv_grasp_updated()){
+    publish_servo_jv_grasp();
   }
 }
 
@@ -290,6 +310,22 @@ void CRTK_robot::publish_servo_cp(){
 
 
 /**
+ * @brief      publish servo_cv command
+ */
+void CRTK_robot::publish_servo_cv(){
+  geometry_msgs::TransformStamped msg;
+
+  msg.header.stamp = msg.header.stamp.now();
+  tf::Transform cmd = arm.get_servo_cv_command(); 
+  tf::transformTFToMsg(cmd,msg.transform);
+
+  pub_servo_cv.publish(msg);
+  arm.reset_servo_cv_updated();
+}
+
+
+
+/**
  * @brief      publish servo_jr grasper command
  */
 void CRTK_robot::publish_servo_jr_grasp(){
@@ -302,6 +338,23 @@ void CRTK_robot::publish_servo_jr_grasp(){
 
   pub_servo_jr_grasp.publish(msg);
   arm.reset_servo_jr_grasp_updated();
+}
+
+
+
+/**
+ * @brief      publish servo_jv grasper command
+ */
+void CRTK_robot::publish_servo_jv_grasp(){
+  sensor_msgs::JointState msg;
+
+  msg.header.stamp = msg.header.stamp.now();
+  float cmd = arm.get_servo_jv_grasp_command(); 
+  msg.velocity.push_back(cmd);
+  msg.name.push_back("grasp");
+
+  pub_servo_jv_grasp.publish(msg);
+  arm.reset_servo_jv_grasp_updated();
 }
 
 
@@ -323,6 +376,27 @@ void CRTK_robot::publish_servo_jr(){
     
     pub_servo_jr.publish(msg);
     arm.reset_servo_jr_updated();
+}
+
+
+
+/**
+ * @brief      publish servo_jv command
+ */
+void CRTK_robot::publish_servo_jv(){
+  
+  sensor_msgs::JointState msg;
+
+  msg.header.stamp = msg.header.stamp.now();
+  float cmd[MAX_JOINTS];
+
+  arm.get_servo_jv_command(cmd, MAX_JOINTS); 
+
+  for(int j=0;j<MAX_JOINTS;j++)
+    msg.velocity.push_back(cmd[j]);
+    
+    pub_servo_jv.publish(msg);
+    arm.reset_servo_jv_updated();
 }
 
 
