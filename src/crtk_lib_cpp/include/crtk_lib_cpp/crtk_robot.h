@@ -69,6 +69,7 @@ class CRTK_robot{
     void publish_servo_jp();
     void publish_servo_jv_grasp();
     void publish_servo_jv();
+    unsigned int get_max_joints();
     void run();
   private:
     unsigned int max_joints; 

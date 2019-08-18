@@ -44,14 +44,7 @@
 #include <string>
 using namespace std;
 
-#define RAVEN 1
-
-
-#ifdef RAVEN
-  int is_raven = RAVEN;
-#else 
-  int is_raven = 0;
-#endif
+int is_raven = 0;
 
 /**
  * The main function creates a robot state and initiates it before running a loop for the
@@ -79,6 +72,10 @@ int main(int argc, char **argv)
   std::string r_space;
   if(!n.getParam("r_space", r_space))
     ROS_ERROR("No Robot namespace provided in command line!");
+  
+  if(r_space == "arm1" || r_space == "arm2")
+    is_raven = 1;
+
   CRTK_robot_state robot_state(n,r_space);
 
   int count = 0;

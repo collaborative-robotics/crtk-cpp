@@ -50,15 +50,7 @@ CRTK_motion::CRTK_motion(){
 
   home_pos_set = 0;
   home_jpos_set = 0;
-
-  for(int i=0;i<MAX_JOINTS;i++)
-  {
-    prismatic_joints[i] = 0;
-  }
-
-#ifdef RAVEN 
-  prismatic_joints[2] = 1;
-#endif
+  is_prismatic_set = 0;
   
 }
 
@@ -830,6 +822,12 @@ char CRTK_motion::go_to_jpos(char mode_flag, int joint_index, float angle, time_
  */
 char CRTK_motion::is_prismatic(int joint_index)
 {
+    if(!is_prismatic_set)
+    {
+      ROS_ERROR("prismatic joints flags not set.");
+      return 0;
+    }
+
     if(joint_index >= 0 && joint_index < MAX_JOINTS)
     {
       return prismatic_joints[joint_index];
@@ -840,6 +838,28 @@ char CRTK_motion::is_prismatic(int joint_index)
       return 0;
     }
 }
+
+
+
+/**
+ * @brief      Sets the is_prismatic flags
+ *
+ * @param      in      input is_prismatic flags array
+ * @param[in]  length  The length
+ *
+ * @return     success
+ */
+char CRTK_motion::set_prismatic_joints(char* in, int length=MAX_JOINTS)
+{
+  for(int i=0;i<length;i++)
+  {
+    prismatic_joints[i] = in[i];
+  }
+
+  is_prismatic_set = 1;
+}
+
+
 
 
 /**

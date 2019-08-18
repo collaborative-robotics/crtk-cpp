@@ -163,8 +163,9 @@ int test_6_1(CRTK_robot *robot, time_t current_time)
   static int current_step = 1;
   static time_t pause_start;
   int out = 0;
-  int joint_index = 0;
-  std::string start, s;
+  static int joint_index = 0;
+  static std::string s;
+  std::string start;
   float angle = 20 DEG_TO_RAD; // 10 degrees total
   float distance = 0.03;   // 3 cm in total
 
@@ -210,11 +211,20 @@ int test_6_1(CRTK_robot *robot, time_t current_time)
       // (4) check if crtk == enabled
       if (robot->state.get_enabled()){
 
-        if(current_step == 4)         s = "shoulder";
-        else if(current_step == 10)   s = "tool insertion";
-        else                          s = "tool grasper";
+        if(current_step == 4)
+          joint_index = 0;     
+        else if(current_step == 10)
+          joint_index = 4;
+        else
+          joint_index = 6;
 
-        ROS_INFO("Moving robot arm in the %s joint ...",s.c_str()); 
+        if(joint_index >= robot->get_max_joints())
+          joint_index = std::rand() % robot->get_max_joints();
+        std::stringstream gstream; 
+        gstream << joint_index; 
+        s = gstream.str();                 
+
+        ROS_INFO("Moving robot arm in joint %s ...",s.c_str()); 
         robot->arm.start_motion(current_time);
         ROS_INFO("Start moving robot!");
         current_step ++;
@@ -225,11 +235,7 @@ int test_6_1(CRTK_robot *robot, time_t current_time)
     {
       // (5) send motion command to move robot (for 2 secs)
 
-      if(current_step == 5)         joint_index = 0;
-      else if(current_step == 11)   joint_index = 2;
-      else                          joint_index = 6;
-
-      if(joint_index == 2)
+      if(robot->arm.is_prismatic(joint_index))
         out = robot->arm.go_to_jpos(2,joint_index, distance, current_time);
       else
         out = robot->arm.go_to_jpos(2,joint_index, angle, current_time);
@@ -247,10 +253,10 @@ int test_6_1(CRTK_robot *robot, time_t current_time)
     case 7:    case 13:    case 19: 
     {
       // (7) ask human if it moved (back)?
-      if(current_step == 7)         s = "shoulder";
-      else if(current_step == 13)   s = "tool insertion";
-      else                          s = "tool grasper";
-      ROS_INFO("Did the %s move aout %f degrees? (Y/N)", s.c_str(),angle RAD_TO_DEG);
+      if(robot->arm.is_prismatic(joint_index))
+        ROS_INFO("Did joint %s move about %f mm? (Y/N)", s.c_str(),distance M_TO_MM);
+      else
+        ROS_INFO("Did joint %s move about %f degrees? (Y/N)", s.c_str(),angle RAD_TO_DEG);
       current_step++;
       break;
     }
