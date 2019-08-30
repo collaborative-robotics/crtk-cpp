@@ -603,7 +603,7 @@ char CRTK_motion::go_to_pos(tf::Transform end, time_t curr_time){
  *
  * @return     success
  */
-char CRTK_motion::go_to_jpos(char mode_flag, float* jpos_d, time_t curr_time, int length)
+char CRTK_motion::go_to_jpos(char mode_flag, float* jpos_d, time_t curr_time, float max_omega, float max_pris, int length)
 {
   static int loop_count = 0;
   static float diff[MAX_JOINTS];
@@ -622,9 +622,6 @@ char CRTK_motion::go_to_jpos(char mode_flag, float* jpos_d, time_t curr_time, in
     ROS_ERROR("Toooooo many joints in go_to_jpos");
     return -1;
   }
-
-  float max_omega = 20 DEG_TO_RAD; // per second 
-  float max_pris = 0.03;           // meters per second 
 
   //determine max steps needed and corresponding steps for sync'ed finish
   float rot_step = (max_omega/LOOP_RATE);
@@ -721,7 +718,7 @@ char CRTK_motion::go_to_jpos(char mode_flag, float* jpos_d, time_t curr_time, in
  *
  * @return     success
  */
-char CRTK_motion::go_to_jpos(char mode_flag, int joint_index, float angle, time_t curr_time){
+char CRTK_motion::go_to_jpos(char mode_flag, int joint_index, float angle, time_t curr_time, float max_omega, float max_pris){
   
 
   static int loop_count = 0;
@@ -739,9 +736,6 @@ char CRTK_motion::go_to_jpos(char mode_flag, int joint_index, float angle, time_
       jr_out[i] = 0;
       jv_out[i] = 0;
   }
-
-  float max_omega = 20 DEG_TO_RAD; // per second 
-  float max_pris = 0.03;           // meters per second 
 
   //determine max steps needed and corresponding steps for sync'ed finish
   float rot_step = (max_omega/LOOP_RATE);

@@ -120,8 +120,8 @@ public:
   void get_home_jpos(float* out, int length = MAX_JOINTS);
 
   char go_to_pos(tf::Transform, time_t);
-  char go_to_jpos(char,int, float, time_t);
-  char go_to_jpos(char,float*, time_t, int length = MAX_JOINTS);
+  char go_to_jpos(char,int, float, time_t, float, float);
+  char go_to_jpos(char,float*, time_t, float, float, int length = MAX_JOINTS);
   char is_prismatic(int);
   char set_prismatic_joints(char*, int);
 

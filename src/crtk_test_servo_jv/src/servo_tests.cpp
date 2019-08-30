@@ -168,6 +168,8 @@ int test_6_1(CRTK_robot *robot, time_t current_time)
   std::string start;
   float angle = 20 DEG_TO_RAD; // 10 degrees total
   float distance = 0.03;   // 3 cm in total
+  float max_omega = 20 DEG_TO_RAD; // per second 
+  float max_pris = 0.03;           // meters per second 
 
   switch(current_step)
   {
@@ -236,9 +238,9 @@ int test_6_1(CRTK_robot *robot, time_t current_time)
       // (5) send motion command to move robot (for 2 secs)
 
       if(robot->arm.is_prismatic(joint_index))
-        out = robot->arm.go_to_jpos(2,joint_index, distance, current_time);
+        out = robot->arm.go_to_jpos(2,joint_index, distance, current_time, max_omega, max_pris);
       else
-        out = robot->arm.go_to_jpos(2,joint_index, angle, current_time);
+        out = robot->arm.go_to_jpos(2,joint_index, angle, current_time, max_omega, max_pris);
 
       out = step_success(out, &current_step);
       break;
@@ -308,6 +310,8 @@ int test_6_2(CRTK_robot *robot, time_t current_time)
   float angle = 45 DEG_TO_RAD; // 45 degrees total
   float completion_percentage_thres = 0.85;  // 0.95;
   static float home[MAX_JOINTS];
+  float max_omega = 20 DEG_TO_RAD; // per second 
+  float max_pris = 0.03;           // meters per second 
 
   switch(current_step)
   {
@@ -362,7 +366,7 @@ int test_6_2(CRTK_robot *robot, time_t current_time)
     {
       // (5) send motion command to move robot (for 2 secs)
       robot->arm.get_home_jpos(home);
-      out = robot->arm.go_to_jpos(2, home, current_time);
+      out = robot->arm.go_to_jpos(2, home, current_time, max_omega, max_pris);
       out = step_success(out, &current_step);
       break;
     }
