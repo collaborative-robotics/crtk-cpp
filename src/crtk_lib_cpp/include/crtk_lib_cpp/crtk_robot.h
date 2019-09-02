@@ -56,6 +56,7 @@ class CRTK_robot{
     bool init_param(ros::NodeHandle);
     bool init_ros(ros::NodeHandle);
     void crtk_measured_cp_arm_cb(geometry_msgs::TransformStamped);
+    void crtk_measured_cv_arm_cb(geometry_msgs::TransformStamped);
     void crtk_measured_js_arm_cb(sensor_msgs::JointState);
     void set_state(CRTK_robot_state *new_state);
 

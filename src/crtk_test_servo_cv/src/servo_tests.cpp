@@ -184,7 +184,11 @@ int test_7_1(CRTK_robot *robot, time_t current_time){
   float vel_thresh = 10 DEG_TO_RAD;
   float dist = 0.02; // 20 mm total
   float completion_percentage_thres = 0.85;  // 0.95;
+  float duration_time = 2; // sec
+
   static tf::Transform start_pos;
+  static float current_cv, extreme_cv, average_cv;
+  static int iteration, extreme_iteration, delay_iteration;
 
   switch(current_step)
   {
@@ -223,6 +227,11 @@ int test_7_1(CRTK_robot *robot, time_t current_time){
         ROS_INFO("Moving robot arm along %s for 2 seconds...",s.c_str()); 
         start_pos = robot->arm.get_measured_cp();
         robot->arm.start_motion(current_time);
+        average_cv = 0.0;
+        extreme_cv = 0.0;
+        iteration = 0;
+        extreme_iteration = 0;
+        delay_iteration = 0;
         current_step ++;
       }
       break;
@@ -231,8 +240,18 @@ int test_7_1(CRTK_robot *robot, time_t current_time){
     {
       // (5) send motion command to move robot (for 2 secs)
       tf::Vector3 move_vec = (current_step == 5) ? -vec_z : vec_x;
-      out = robot->arm.send_servo_cv_time(move_vec,dist,2,current_time);
+      int move_idx = (current_step == 5) ? 2 : 0;
+      out = robot->arm.send_servo_cv_time(move_vec,dist,duration_time,current_time);
       out = step_success(out, &current_step);
+
+      current_cv = robot->arm.get_measured_cv().getOrigin()[move_idx];
+      iteration = iteration + 1;
+      average_cv = (average_cv * iteration + current_cv)/(iteration + 1);
+      if(fabs(robot->arm.get_measured_cv().getOrigin()[move_idx]) > fabs(extreme_cv))
+      {
+        extreme_iteration = iteration;
+        extreme_cv = current_cv;
+      }
       break;
     }
     case 6:    case 12:
@@ -242,7 +261,15 @@ int test_7_1(CRTK_robot *robot, time_t current_time){
       float curr_sign = (current_step == 6) ? -1.0 : 1.0;
       float check_thres = curr_sign * dist * completion_percentage_thres;
       out = check_movement_distance(&robot->arm, start_pos, curr_axis,check_thres);
-      out = step_success(out, &current_step);
+
+      int move_idx = (current_step == 6) ? 2 : 0;
+      if(robot->arm.get_measured_cv().getOrigin()[move_idx] == 0 || delay_iteration > 3*LOOP_RATE)
+        out = step_success(out, &current_step);
+      else
+      {
+        out = 0;
+        delay_iteration ++;
+      }
       break;
     }
     case 7:    case 13:
@@ -250,6 +277,15 @@ int test_7_1(CRTK_robot *robot, time_t current_time){
       // (7) ask human if it moved (back)?
       // CRTK_robot_command command = CRTK_PAUSE;
       // robot->state.crtk_command_pb(command); 
+      ROS_INFO("Process complete: avg v = %f (out of total iterations: %d)", average_cv, iteration);
+      ROS_INFO("                  max v = %f (happened at iteration: %d)", extreme_cv, extreme_iteration);
+      if(delay_iteration > LOOP_RATE)
+        ROS_INFO("                  time delay = over 3 secs.. (not very good)");
+      else
+        ROS_INFO("                  time delay = %f secs (%d iterations)", (1.0*delay_iteration)/(1.0*LOOP_RATE), delay_iteration);
+
+      ROS_INFO("                  achieved ratio = (%f)/(%f) = %f%% (max/desired v)\n",extreme_cv, (dist/duration_time), 100*extreme_cv/(dist/duration_time));
+
       if(current_step == 7)
         ROS_INFO("Did the robot move down toward the table? (Y/N)");
       else
@@ -424,6 +460,8 @@ int test_7_3(CRTK_robot * robot, time_t current_time){
   float step_angle = 2*0.000262;
   static tf::Vector3 motion_vec;
   std::string start;
+  static float average_cv, extreme_cv, current_cv;
+  static int iteration, extreme_iteration, delay_iteration;
 
   switch(current_step)
   {
@@ -460,6 +498,11 @@ int test_7_3(CRTK_robot * robot, time_t current_time){
       // (4) check if crtk == enabled
       if (robot->state.get_enabled()){
         robot->arm.start_motion(current_time);
+        average_cv = 0.0;
+        extreme_cv = 0.0;
+        iteration = 0;
+        extreme_iteration = 0;
+        delay_iteration = 0;
         current_step ++;
       }
       break;
@@ -476,6 +519,16 @@ int test_7_3(CRTK_robot * robot, time_t current_time){
 
       tf::Transform trans = tf::Transform(tf::Quaternion(motion_vec,step_angle));
       out = robot->arm.send_servo_cv(trans);
+
+      current_cv = robot->arm.get_measured_cv().getRotation().getAngleShortestPath();
+      iteration = iteration + 1;
+      average_cv = (average_cv * iteration + current_cv)/(iteration + 1);
+      if(fabs(robot->arm.get_measured_cv().getRotation().getAngleShortestPath()) > fabs(extreme_cv))
+      {
+        extreme_iteration = iteration;
+        extreme_cv = current_cv;
+      }
+
       if(current_time-robot->arm.get_start_time() > duration){
         robot->arm.start_motion(current_time);
         current_step ++;
@@ -492,8 +545,16 @@ int test_7_3(CRTK_robot * robot, time_t current_time){
       //   current_step ++;
       //   ROS_INFO("moving to step %i",current_step);
       // }
-      current_step ++;
-      ROS_INFO("moving to step %i",current_step);
+      if(robot->arm.get_measured_cv().getRotation().getAngleShortestPath() == 0 || delay_iteration > 3*LOOP_RATE)
+      {
+        out = step_success(1, &current_step);
+        ROS_INFO("moving to step %i",current_step);
+      }
+      else
+      {
+        out = 0;
+        delay_iteration ++;
+      }
       break;
     }
     case 7:  case 12:   case 17:
@@ -505,6 +566,15 @@ int test_7_3(CRTK_robot * robot, time_t current_time){
         robot->arm.start_motion(current_time);
         current_step ++;
         ROS_INFO("moving to step %i",current_step);
+
+        ROS_INFO("Process complete: avg v = %f (out of total iterations: %d)", average_cv, iteration);
+        ROS_INFO("                  max v = %f (happened at iteration: %d)", extreme_cv, extreme_iteration);
+        if(delay_iteration > LOOP_RATE)
+          ROS_INFO("                  time delay = over 3 secs.. (not very good)");
+        else
+          ROS_INFO("                  time delay = %f secs (%d iterations)", (1.0*delay_iteration)/(1.0*LOOP_RATE), delay_iteration);
+
+        ROS_INFO("                  achieved ratio = (%f)/(%f) = %f%% (max/desired v)\n",extreme_cv, (step_angle*LOOP_RATE), 100*extreme_cv/(step_angle*LOOP_RATE));
       }
       break;
     }

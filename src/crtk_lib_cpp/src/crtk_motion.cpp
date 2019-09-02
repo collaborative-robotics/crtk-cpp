@@ -66,6 +66,16 @@ tf::Transform CRTK_motion::get_measured_cp(){
 
 
 /**
+ * @brief      Gets the measured cartesian pose.
+ *
+ * @return     The measured cv.
+ */
+tf::Transform CRTK_motion::get_measured_cv(){
+  return measured_cv;
+}
+
+
+/**
  * @brief      Sets the measured cartesian pose.
  *
  * @param[in]  trans  The transformation matrix
@@ -74,6 +84,15 @@ void CRTK_motion::set_measured_cp(tf::Transform trans){
   measured_cp = tf::Transform(trans);
 }
 
+
+/**
+ * @brief      Sets the measured cartesian velocity.
+ *
+ * @param[in]  trans  The transformation matrix
+ */
+void CRTK_motion::set_measured_cv(tf::Transform trans){
+  measured_cv = tf::Transform(trans);
+}
 
 /**
  * @brief      Gets the measured js position for a specific joint.

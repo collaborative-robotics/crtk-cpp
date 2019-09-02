@@ -170,6 +170,8 @@ int test_6_1(CRTK_robot *robot, time_t current_time)
   float distance = 0.03;   // 3 cm in total
   float max_omega = 20 DEG_TO_RAD; // per second 
   float max_pris = 0.03;           // meters per second 
+  static float average_jv, extreme_jv, current_jv;
+  static int iteration, extreme_iteration, delay_iteration;
 
   switch(current_step)
   {
@@ -229,6 +231,11 @@ int test_6_1(CRTK_robot *robot, time_t current_time)
         ROS_INFO("Moving robot arm in joint %s ...",s.c_str()); 
         robot->arm.start_motion(current_time);
         ROS_INFO("Start moving robot!");
+        average_jv = 0.0;
+        extreme_jv = 0.0;
+        iteration = 0;
+        extreme_iteration = 0;
+        delay_iteration = 0;
         current_step ++;
       }
       break;
@@ -238,27 +245,57 @@ int test_6_1(CRTK_robot *robot, time_t current_time)
       // (5) send motion command to move robot (for 2 secs)
 
       if(robot->arm.is_prismatic(joint_index))
+      {
         out = robot->arm.go_to_jpos(2,joint_index, distance, current_time, max_omega, max_pris);
+      }
       else
+      {
         out = robot->arm.go_to_jpos(2,joint_index, angle, current_time, max_omega, max_pris);
-
+      }
+      current_jv = robot->arm.get_measured_js_vel(joint_index);
+      iteration = iteration + 1;
+      average_jv = (average_jv * iteration + current_jv)/(iteration + 1);
+      if(fabs(robot->arm.get_measured_js_vel(joint_index)) > fabs(extreme_jv))
+      {
+        extreme_iteration = iteration;
+        extreme_jv = current_jv;
+      }
       out = step_success(out, &current_step);
       break;
     }
     case 6:    case 12:    case 18:
     {
       // (6) do a dance
-      out = 1; 
-      out = step_success(out, &current_step);
+      if(robot->arm.get_measured_js_vel(joint_index) == 0 || delay_iteration > 3*LOOP_RATE)
+        out = step_success(1, &current_step);
+      else
+      {
+        out = 0;
+        delay_iteration ++;
+      }
+      
       break;
     }
     case 7:    case 13:    case 19: 
     {
       // (7) ask human if it moved (back)?
-      if(robot->arm.is_prismatic(joint_index))
-        ROS_INFO("Did joint %s move about %f mm? (Y/N)", s.c_str(),distance M_TO_MM);
+      ROS_INFO("Process complete: avg v = %f (out of total iterations: %d)", average_jv, iteration);
+      ROS_INFO("                  max v = %f (happened at iteration: %d)", extreme_jv, extreme_iteration);
+      if(delay_iteration > LOOP_RATE)
+        ROS_INFO("                  time delay = over 3 secs.. (not very good)");
       else
+        ROS_INFO("                  time delay = %f secs (%d iterations)", (1.0*delay_iteration)/(1.0*LOOP_RATE), delay_iteration);
+
+      if(robot->arm.is_prismatic(joint_index))
+      {
+        ROS_INFO("                  achieved ratio = (%f)/(%f) = %f% (max/desired v)\n",extreme_jv, max_pris, 100*extreme_jv/max_pris);
+        ROS_INFO("Did joint %s move about %f mm? (Y/N)", s.c_str(),distance M_TO_MM);
+      }
+      else
+      {
+        ROS_INFO("                  achieved ratio = (%f)/(%f) = %f% (max/desired v)\n",extreme_jv, max_omega, 100*extreme_jv/max_omega);
         ROS_INFO("Did joint %s move about %f degrees? (Y/N)", s.c_str(),angle RAD_TO_DEG);
+      }
       current_step++;
       break;
     }

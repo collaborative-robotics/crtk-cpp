@@ -46,7 +46,9 @@ public:
   CRTK_motion();
   ~CRTK_motion(){};
   tf::Transform get_measured_cp();
+  tf::Transform get_measured_cv();
   void set_measured_cp(tf::Transform);
+  void set_measured_cv(tf::Transform);
 
   float get_measured_js_pos(int);
   int get_measured_js_pos(float*, int);

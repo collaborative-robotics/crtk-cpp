@@ -153,6 +153,9 @@ bool CRTK_robot::init_ros(ros::NodeHandle n){
   topic = "/" + robot_name + "/measured_cp";
   sub_measured_cp = n.subscribe(topic, 1, &CRTK_robot::crtk_measured_cp_arm_cb,this);
 
+  topic = "/" + robot_name + "/measured_cv";
+  sub_measured_cp = n.subscribe(topic, 1, &CRTK_robot::crtk_measured_cv_arm_cb,this);
+
   topic = "/" + robot_name + "/measured_js";
   sub_measured_js = n.subscribe(topic, 1, &CRTK_robot::crtk_measured_js_arm_cb,this);
 
@@ -213,6 +216,19 @@ void CRTK_robot::crtk_measured_cp_arm_cb(geometry_msgs::TransformStamped msg){
 
 }
 
+
+
+/**
+ * @brief      arm1 callback function for measured_cv
+ *
+ * @param[in]  msg   The message
+ */
+void CRTK_robot::crtk_measured_cv_arm_cb(geometry_msgs::TransformStamped msg){
+  tf::Transform in;
+  tf::transformMsgToTF(msg.transform, in);
+  arm.set_measured_cv(in);
+
+}
 
 /**
  * @brief      arm1 callback function for measured_js
